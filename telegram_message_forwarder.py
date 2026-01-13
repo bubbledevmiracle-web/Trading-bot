@@ -43,6 +43,9 @@ from pyrogram.errors import (
 )
 from pyrogram.types import Message
 
+# Trading bot integration
+from trading_bot_integration import TradingBotIntegration
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -65,7 +68,11 @@ SOURCE_CHANNELS = {
 PERSONAL_CHANNEL_ID = "-1003179263982"
 
 # Dry Run Mode (set to False to actually send messages)
-DRY_RUN = False   # Production: False, Test: True 
+DRY_RUN = False   # Production: False, Test: True
+
+# BingX Trading Integration
+ENABLE_TRADING = True  # Set to False to disable trading (only forward messages)
+BINGX_TESTNET = True  # Set to False for mainnet (use True for testing) 
 
 # Timezone for timestamps (Europe/Stockholm or UTC)
 TIMEZONE = "Europe/Stockholm"  # Use "UTC" for UTC time
@@ -540,11 +547,36 @@ class TelegramForwarder:
         self.personal_channel_id = PERSONAL_CHANNEL_ID
         self.source_channels = SOURCE_CHANNELS
         
+        # Initialize trading bot integration
+        self.trading_bot = None
+        if ENABLE_TRADING:
+            try:
+                self.trading_bot = TradingBotIntegration(testnet=BINGX_TESTNET)
+                logger.info("Trading bot integration initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize trading bot: {e}")
+                logger.warning("Continuing without trading functionality")
+                self.trading_bot = None
+        
     async def start(self):
         """Start the Telegram client."""
         logger.info("Starting Telegram client...")
         await self.app.start()
         logger.info("✅ Telegram client started successfully")
+        
+        # Initialize trading bot if enabled
+        if self.trading_bot:
+            try:
+                if await self.trading_bot.initialize():
+                    logger.info("✅ Trading bot initialized successfully")
+                    # Send startup message
+                    await self.trading_bot.send_startup_message(self.app)
+                else:
+                    logger.error("❌ Trading bot initialization failed")
+                    self.trading_bot = None
+            except Exception as e:
+                logger.error(f"❌ Trading bot initialization error: {e}")
+                self.trading_bot = None
         
         # Verify personal channel access
         # Note: Channel may not be in session cache yet, so we'll verify it's accessible
@@ -656,12 +688,47 @@ class TelegramForwarder:
             logger.info(f"📨 New signal from {channel_name}")
             logger.debug(f"Signal text: {message_text[:200]}...")
             
-            # Format message with template
-            formatted_message = format_template_message(
-                channel_name=channel_name,
-                original_text=message_text,
-                timestamp=format_timestamp(TIMEZONE)
-            )
+            # Process signal with trading bot if enabled
+            formatted_message = None
+            if self.trading_bot and ENABLE_TRADING and not DRY_RUN:
+                try:
+                    # Process signal and place orders on BingX
+                    trading_result = await self.trading_bot.process_signal(
+                        message_text=message_text,
+                        source_channel=channel_name,
+                        message_id=message.id
+                    )
+                    
+                    if trading_result and trading_result.get('success'):
+                        # Use trading bot template (includes order confirmation)
+                        formatted_message = trading_result.get('template_message')
+                        logger.info(f"✅ Orders placed: {trading_result.get('bot_order_id')}")
+                    else:
+                        # Fallback to basic template if trading fails
+                        error_msg = trading_result.get('error', 'Unknown error') if trading_result else 'Trading bot error'
+                        logger.warning(f"⚠️ Trading bot error: {error_msg}")
+                        formatted_message = format_template_message(
+                            channel_name=channel_name,
+                            original_text=message_text,
+                            timestamp=format_timestamp(TIMEZONE)
+                        )
+                        # Add error note
+                        formatted_message = f"⚠️ Trading Error: {error_msg}\n\n{formatted_message}"
+                except Exception as e:
+                    logger.error(f"❌ Trading bot processing error: {e}", exc_info=True)
+                    # Fallback to basic template
+                    formatted_message = format_template_message(
+                        channel_name=channel_name,
+                        original_text=message_text,
+                        timestamp=format_timestamp(TIMEZONE)
+                    )
+            else:
+                # No trading bot or trading disabled - use basic template
+                formatted_message = format_template_message(
+                    channel_name=channel_name,
+                    original_text=message_text,
+                    timestamp=format_timestamp(TIMEZONE)
+                )
             
             # Send to personal channel
             if DRY_RUN:
