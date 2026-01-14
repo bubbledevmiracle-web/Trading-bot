@@ -34707,3 +34707,1824 @@ OSError: [WinError 10054] An existing connection was forcibly closed by the remo
 2026-01-13 03:25:13,064 - __main__ - INFO - ✅ Telegram client stopped
 2026-01-13 03:25:13,077 - __main__ - INFO - 
 👋 Goodbye!
+2026-01-13 10:55:10,877 - __main__ - INFO - ============================================================
+2026-01-13 10:55:10,893 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-13 10:55:10,894 - __main__ - INFO - ============================================================
+2026-01-13 10:55:10,894 - __main__ - INFO - API ID: 27590479
+2026-01-13 10:55:10,894 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-13 10:55:10,894 - __main__ - INFO - Source Channels: 5
+2026-01-13 10:55:10,895 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-13 10:55:10,895 - __main__ - INFO - Dry Run: False
+2026-01-13 10:55:10,895 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-13 10:55:10,895 - __main__ - INFO - ============================================================
+2026-01-13 10:55:10,896 - bingx_client - INFO - BingX client initialized (testnet=True)
+2026-01-13 10:55:10,896 - __main__ - INFO - Trading bot integration initialized
+2026-01-13 10:55:10,897 - __main__ - INFO - Starting Telegram client...
+2026-01-13 10:55:11,914 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 10:55:12,107 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 10:55:12,108 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 10:55:12,961 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 10:55:12,962 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 10:55:12,962 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 10:55:12,962 - pyrogram.session.session - INFO - Session started
+2026-01-13 10:55:12,965 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 10:55:13,379 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-13 10:55:13,379 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-13 10:55:17,401 - bingx_client - ERROR - BingX API error: this api is not exist,please refer to the API docs https://bingx-api.github.io/docs (code: 100400)
+2026-01-13 10:55:17,402 - bingx_client - ERROR - ❌ BingX connection failed: BingX API error: this api is not exist,please refer to the API docs https://bingx-api.github.io/docs
+2026-01-13 10:55:17,402 - trading_bot_integration - ERROR - ❌ BingX connection failed
+2026-01-13 10:55:17,402 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-13 10:55:17,702 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-13 10:55:17,702 - __main__ - INFO - Verifying source channels...
+2026-01-13 10:55:19,036 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-13 10:55:19,666 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-13 10:55:20,088 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-13 10:55:20,550 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-13 10:55:20,990 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-13 10:55:20,991 - __main__ - INFO - 
+============================================================
+2026-01-13 10:55:20,991 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-13 10:55:20,991 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-13 10:55:20,992 - __main__ - INFO - ============================================================
+
+2026-01-13 10:55:20,992 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-13 13:15:07,547 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 13:15:07,641 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 13:15:07,966 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 15:00:11,329 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-13 15:00:11,332 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 15:00:11,588 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 15:01:48,857 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 15:01:48,858 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 15:01:49,236 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 16:13:21,397 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-13 16:13:21,421 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 16:13:21,659 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:07:01,205 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-13 17:07:01,208 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:07:01,438 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:08:31,370 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets, multiple_targets, has_stop_loss) (confidence: 12)
+2026-01-13 17:08:31,371 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:08:31,631 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:08:51,103 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets, multiple_targets, has_stop_loss) (confidence: 12)
+2026-01-13 17:08:51,104 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:08:51,330 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:08:56,299 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets) (confidence: 9)
+2026-01-13 17:08:56,300 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:08:56,527 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:10:06,488 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets, multiple_targets, has_stop_loss) (confidence: 12)
+2026-01-13 17:10:06,489 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:10:06,729 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:10:26,623 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets) (confidence: 9)
+2026-01-13 17:10:26,623 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:10:26,852 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:10:31,318 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets) (confidence: 9)
+2026-01-13 17:10:31,319 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:10:31,540 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:10:50,927 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-13 17:10:50,927 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:10:51,163 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:15:08,750 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:15:08,750 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:15:09,206 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:15:11,993 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:15:11,993 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:15:12,247 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:15:14,707 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:15:14,708 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:15:15,038 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:15:19,861 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:15:19,861 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:15:20,085 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:15:27,709 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:15:27,709 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:15:27,945 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:17:07,714 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-13 17:17:07,715 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 17:17:07,956 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 17:19:58,292 - __main__ - INFO - Stopping Telegram client...
+2026-01-13 17:19:58,567 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 17:19:58,568 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 17:19:58,568 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 17:19:58,569 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 17:19:58,569 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-13 17:19:58,603 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-13 19:10:55,754 - __main__ - INFO - ============================================================
+2026-01-13 19:10:55,755 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-13 19:10:55,755 - __main__ - INFO - ============================================================
+2026-01-13 19:10:55,755 - __main__ - INFO - API ID: 27590479
+2026-01-13 19:10:55,755 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-13 19:10:55,756 - __main__ - INFO - Source Channels: 5
+2026-01-13 19:10:55,756 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-13 19:10:55,756 - __main__ - INFO - Dry Run: False
+2026-01-13 19:10:55,756 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-13 19:10:55,756 - __main__ - INFO - ============================================================
+2026-01-13 19:10:55,757 - bingx_client - INFO - BingX client initialized (testnet=True)
+2026-01-13 19:10:55,757 - __main__ - INFO - Trading bot integration initialized
+2026-01-13 19:10:55,758 - __main__ - INFO - Starting Telegram client...
+2026-01-13 19:10:57,966 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:10:58,027 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:10:58,029 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:10:59,279 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 19:10:59,279 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 19:10:59,279 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 19:10:59,279 - pyrogram.session.session - INFO - Session started
+2026-01-13 19:10:59,283 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 19:10:59,947 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-13 19:10:59,948 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-13 19:11:01,154 - bingx_client - ERROR - BingX API error: this api is not exist,please refer to the API docs https://bingx-api.github.io/docs (code: 100400)
+2026-01-13 19:11:01,154 - bingx_client - ERROR - ❌ BingX connection failed: BingX API error: this api is not exist,please refer to the API docs https://bingx-api.github.io/docs
+2026-01-13 19:11:01,154 - trading_bot_integration - ERROR - ❌ BingX connection failed
+2026-01-13 19:11:01,155 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-13 19:11:01,504 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-13 19:11:01,505 - __main__ - INFO - Verifying source channels...
+2026-01-13 19:11:02,184 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-13 19:11:02,877 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-13 19:11:03,839 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-13 19:11:04,540 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-13 19:11:05,421 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-13 19:11:05,421 - __main__ - INFO - 
+============================================================
+2026-01-13 19:11:05,422 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-13 19:11:05,422 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-13 19:11:05,422 - __main__ - INFO - ============================================================
+
+2026-01-13 19:11:05,423 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-13 19:54:20,475 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 19:54:20,477 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 19:54:20,478 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:54:20,479 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 19:54:20,480 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:54:20,544 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:54:20,545 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:54:21,779 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 19:54:21,779 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 19:54:21,780 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 19:54:21,780 - pyrogram.session.session - INFO - Session started
+2026-01-13 19:54:21,781 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 19:59:22,709 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 19:59:22,710 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 19:59:22,711 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:59:22,711 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 19:59:22,712 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:59:32,726 - pyrogram.connection.connection - WARNING - Unable to connect due to network issues: Connection timed out
+2026-01-13 19:59:33,743 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:59:34,821 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:59:34,822 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:59:35,775 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 19:59:35,776 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 19:59:35,777 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 19:59:35,778 - pyrogram.session.session - INFO - Session started
+2026-01-13 19:59:35,778 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 19:59:49,501 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 19:59:49,501 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 19:59:49,502 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:59:49,502 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 19:59:49,502 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:59:52,585 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:59:52,586 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:59:52,649 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 19:59:54,591 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:59:54,591 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 19:59:54,592 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:59:54,655 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:59:54,656 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:59:55,253 - pyrogram.session.session - INFO - Discarding packet: The msg_id is lower than all the stored values
+2026-01-13 19:59:55,255 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 19:59:55,256 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:59:55,256 - pyrogram.connection.transport.tcp.tcp - INFO - Send exception: ConnectionResetError Connection lost
+2026-01-13 19:59:55,257 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 19:59:55,257 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 19:59:55,257 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 19:59:55,258 - pyrogram.connection.transport.tcp.tcp - INFO - Send exception: ConnectionResetError Connection lost
+2026-01-13 19:59:55,320 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 19:59:55,321 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 19:59:56,518 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 19:59:56,518 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 19:59:56,519 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 19:59:56,519 - pyrogram.session.session - INFO - Session started
+2026-01-13 19:59:56,519 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 20:00:39,440 - __main__ - INFO - Stopping Telegram client...
+2026-01-13 20:00:39,605 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 20:00:39,606 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 20:00:39,606 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 20:00:39,606 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 20:00:39,607 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-13 20:00:39,608 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-13 20:26:22,479 - __main__ - INFO - ============================================================
+2026-01-13 20:26:22,480 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-13 20:26:22,480 - __main__ - INFO - ============================================================
+2026-01-13 20:26:22,480 - __main__ - INFO - API ID: 27590479
+2026-01-13 20:26:22,480 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-13 20:26:22,481 - __main__ - INFO - Source Channels: 5
+2026-01-13 20:26:22,481 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-13 20:26:22,481 - __main__ - INFO - Dry Run: False
+2026-01-13 20:26:22,481 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-13 20:26:22,481 - __main__ - INFO - ============================================================
+2026-01-13 20:26:22,482 - bybit_client - INFO - ByBit client initialized (testnet=True)
+2026-01-13 20:26:22,482 - __main__ - INFO - Trading bot integration initialized
+2026-01-13 20:26:22,482 - __main__ - INFO - Starting Telegram client...
+2026-01-13 20:26:23,291 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 20:26:23,357 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 20:26:23,359 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 20:26:24,614 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 20:26:24,615 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 20:26:24,615 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 20:26:24,615 - pyrogram.session.session - INFO - Session started
+2026-01-13 20:26:24,618 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 20:26:25,519 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-13 20:26:25,519 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-13 20:26:26,464 - bybit_client - ERROR - ❌ ByBit connection failed: Http status code is not 200. (ErrCode: 401) (ErrTime: 01:26:26).
+Request → GET https://api-testnet.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-13 20:26:26,465 - trading_bot_integration - ERROR - ❌ ByBit connection failed
+2026-01-13 20:26:26,466 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-13 20:26:26,861 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-13 20:26:26,862 - __main__ - INFO - Verifying source channels...
+2026-01-13 20:26:27,553 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-13 20:26:28,251 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-13 20:26:29,237 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-13 20:26:29,928 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-13 20:26:30,808 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-13 20:26:30,809 - __main__ - INFO - 
+============================================================
+2026-01-13 20:26:30,809 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-13 20:26:30,809 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-13 20:26:30,810 - __main__ - INFO - ============================================================
+
+2026-01-13 20:26:30,810 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-13 20:29:50,408 - __main__ - INFO - Stopping Telegram client...
+2026-01-13 20:29:50,533 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-13 20:29:50,533 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-13 20:29:50,534 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-13 20:29:50,534 - pyrogram.session.session - INFO - Session stopped
+2026-01-13 20:29:50,534 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-13 20:29:50,535 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-13 20:29:55,396 - __main__ - INFO - ============================================================
+2026-01-13 20:29:55,397 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-13 20:29:55,397 - __main__ - INFO - ============================================================
+2026-01-13 20:29:55,397 - __main__ - INFO - API ID: 27590479
+2026-01-13 20:29:55,397 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-13 20:29:55,397 - __main__ - INFO - Source Channels: 5
+2026-01-13 20:29:55,398 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-13 20:29:55,398 - __main__ - INFO - Dry Run: False
+2026-01-13 20:29:55,398 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-13 20:29:55,398 - __main__ - INFO - ============================================================
+2026-01-13 20:29:55,399 - bybit_client - INFO - ByBit client initialized (testnet=False)
+2026-01-13 20:29:55,399 - __main__ - INFO - Trading bot integration initialized
+2026-01-13 20:29:55,399 - __main__ - INFO - Starting Telegram client...
+2026-01-13 20:29:56,091 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-13 20:29:56,155 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-13 20:29:56,156 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-13 20:29:57,400 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-13 20:29:57,401 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-13 20:29:57,401 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-13 20:29:57,401 - pyrogram.session.session - INFO - Session started
+2026-01-13 20:29:57,403 - pyrogram.session.session - INFO - PingTask started
+2026-01-13 20:29:58,060 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-13 20:29:58,060 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-13 20:29:59,485 - bybit_client - ERROR - ❌ ByBit connection failed: Http status code is not 200. (ErrCode: 401) (ErrTime: 01:29:59).
+Request → GET https://api.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-13 20:29:59,485 - trading_bot_integration - ERROR - ❌ ByBit connection failed
+2026-01-13 20:29:59,486 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-13 20:29:59,833 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-13 20:29:59,834 - __main__ - INFO - Verifying source channels...
+2026-01-13 20:30:00,531 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-13 20:30:01,219 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-13 20:30:02,191 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-13 20:30:03,076 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-13 20:30:03,784 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-13 20:30:03,784 - __main__ - INFO - 
+============================================================
+2026-01-13 20:30:03,785 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-13 20:30:03,785 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-13 20:30:03,785 - __main__ - INFO - ============================================================
+
+2026-01-13 20:30:03,786 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-13 22:46:55,699 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets, multiple_targets, has_stop_loss) (confidence: 12)
+2026-01-13 22:46:55,712 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 22:46:56,080 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-13 23:01:00,334 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-13 23:01:00,335 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-13 23:01:01,003 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 00:44:01,281 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 00:44:01,426 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 00:44:01,427 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 00:44:01,427 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 00:44:01,428 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 00:44:01,428 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-14 00:44:01,429 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-14 00:44:56,267 - __main__ - INFO - ============================================================
+2026-01-14 00:44:56,268 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-14 00:44:56,268 - __main__ - INFO - ============================================================
+2026-01-14 00:44:56,268 - __main__ - INFO - API ID: 27590479
+2026-01-14 00:44:56,268 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-14 00:44:56,268 - __main__ - INFO - Source Channels: 5
+2026-01-14 00:44:56,268 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-14 00:44:56,268 - __main__ - INFO - Dry Run: False
+2026-01-14 00:44:56,269 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-14 00:44:56,269 - __main__ - INFO - ============================================================
+2026-01-14 00:44:56,269 - bybit_client - INFO - ByBit client initialized (testnet=False)
+2026-01-14 00:44:56,269 - __main__ - INFO - Trading bot integration initialized
+2026-01-14 00:44:56,269 - __main__ - INFO - Starting Telegram client...
+2026-01-14 00:44:57,246 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 00:44:57,312 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 00:44:57,314 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 00:44:58,542 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 00:44:58,542 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 00:44:58,543 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 00:44:58,543 - pyrogram.session.session - INFO - Session started
+2026-01-14 00:44:58,545 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 00:44:59,229 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-14 00:44:59,229 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-14 00:45:00,135 - bybit_client - ERROR - ❌ ByBit connection failed: Http status code is not 200. (ErrCode: 401) (ErrTime: 05:45:00).
+Request → GET https://api.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-14 00:45:00,135 - trading_bot_integration - ERROR - ❌ ByBit connection failed
+2026-01-14 00:45:00,136 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-14 00:45:00,485 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-14 00:45:00,485 - __main__ - INFO - Verifying source channels...
+2026-01-14 00:45:01,208 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-14 00:45:02,315 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-14 00:45:03,282 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-14 00:45:04,149 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-14 00:45:04,838 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-14 00:45:04,839 - __main__ - INFO - 
+============================================================
+2026-01-14 00:45:04,839 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-14 00:45:04,839 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-14 00:45:04,839 - __main__ - INFO - ============================================================
+
+2026-01-14 00:45:04,840 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-14 00:56:40,273 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 00:56:40,274 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 00:56:40,274 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 00:56:40,275 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 00:56:40,275 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 00:56:47,433 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 00:56:47,434 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 00:56:48,733 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 00:56:48,733 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 00:56:48,733 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 00:56:48,733 - pyrogram.session.session - INFO - Session started
+2026-01-14 00:56:48,734 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 02:03:01,876 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:01,878 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 02:03:01,879 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:01,880 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:01,882 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:01,956 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:01,957 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:02,030 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:03,958 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:03,958 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:03,958 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:04,035 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:04,036 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:04,097 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:06,037 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:06,038 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:06,038 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:06,100 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:06,101 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:06,333 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:08,102 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:08,102 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:08,102 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:08,103 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:08,169 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:08,170 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:08,234 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:10,170 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:10,171 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:10,171 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:10,171 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:10,254 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:10,255 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:10,332 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:12,255 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:12,256 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:12,256 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:12,256 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:12,318 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:12,319 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:12,381 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:14,319 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:14,319 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:14,320 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:14,320 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:14,400 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:14,401 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:14,482 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:16,402 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:16,402 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:16,403 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:16,482 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:16,483 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:16,547 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:18,484 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:18,484 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:18,485 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:18,557 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:18,558 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:18,612 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:20,559 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:20,560 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:20,560 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:20,639 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:20,639 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:20,708 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:22,640 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:22,641 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:22,641 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:22,642 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:22,708 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:22,709 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:22,772 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:24,710 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:24,710 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:24,710 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:24,710 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:24,777 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:24,778 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:24,839 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:26,779 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:26,780 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:26,780 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:26,861 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:26,862 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:26,934 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:28,863 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:28,863 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:28,863 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:28,863 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:28,941 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:28,942 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:29,004 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:30,943 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:30,944 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:30,944 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:30,944 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:31,009 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:31,010 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:31,073 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:33,011 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:33,011 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:33,011 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:33,012 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:33,074 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:33,075 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:33,144 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:35,076 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:35,076 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:35,076 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:35,139 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:35,139 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:35,203 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:37,140 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:37,140 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:37,141 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:37,141 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:37,207 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:37,209 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:37,270 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:39,210 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:39,210 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:39,211 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:39,275 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:39,276 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:39,337 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:41,277 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:41,277 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:41,278 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:41,359 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:41,359 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:41,423 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:43,361 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:43,361 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:43,361 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:43,425 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:43,426 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:43,488 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:45,427 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:45,427 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:45,428 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:45,492 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:45,492 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:45,554 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:47,493 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:47,493 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:47,494 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:47,494 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:47,558 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:47,559 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:47,622 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:49,561 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:49,561 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:49,561 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:49,561 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:49,625 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:49,625 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:49,688 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:51,627 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:51,649 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:51,649 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:51,713 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:51,714 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:51,779 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:53,715 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:53,715 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:53,715 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:53,715 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:53,779 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:53,780 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:53,853 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:55,781 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:55,781 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:55,781 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:55,782 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:55,844 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:55,845 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:55,910 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:57,846 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:03:57,846 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:57,846 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:57,847 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:57,909 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:57,910 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:03:57,971 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:03:59,911 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:03:59,912 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:03:59,912 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:03:59,976 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:03:59,977 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:00,038 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:01,978 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:01,979 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:01,979 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:01,979 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:02,042 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:02,043 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:02,104 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:04,044 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:04,045 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:04,045 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:04,045 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:04,109 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:04,110 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:04,171 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:06,111 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:06,111 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:06,111 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:06,112 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:06,180 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:06,181 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:06,242 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:08,181 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:08,182 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:08,182 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:08,247 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:08,248 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:08,310 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:10,249 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:10,249 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:10,249 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:10,249 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:10,313 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:10,314 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:10,378 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:12,315 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:12,315 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:12,315 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:12,378 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:12,379 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:12,440 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:14,380 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:14,380 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:14,380 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:14,444 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:14,446 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:14,508 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:16,447 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:16,448 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:16,448 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:16,512 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:16,513 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:16,575 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:18,514 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:18,514 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:18,514 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:18,577 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:18,579 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:18,641 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:20,580 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:20,580 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:20,580 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:20,580 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:20,645 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:20,646 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:20,708 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:22,647 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:22,647 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:22,647 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:22,648 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:22,712 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:22,713 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:22,778 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:24,714 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:24,714 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:24,715 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:24,715 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:24,782 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:24,782 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:24,850 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:26,783 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:26,784 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:26,784 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:26,847 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:26,848 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:26,910 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:28,849 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:28,849 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:28,849 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:28,849 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:28,914 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:28,915 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:28,979 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:30,916 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:30,917 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:30,917 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:30,917 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:30,989 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:30,991 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:31,072 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:32,992 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:32,992 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:32,992 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:33,055 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:33,056 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:33,117 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:35,057 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:35,057 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:35,058 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:35,058 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:35,120 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:35,121 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:35,182 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:37,122 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:37,122 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:37,123 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:37,192 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:37,193 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:37,256 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:39,194 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:39,195 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:39,195 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:39,195 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:39,267 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:39,268 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:39,332 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:41,269 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:41,270 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:41,270 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:41,334 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:41,334 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:41,397 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:43,336 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:43,336 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:43,337 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:43,399 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:43,399 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:43,461 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:45,400 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:45,400 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:45,401 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:45,466 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:45,466 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:45,529 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:47,468 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:47,468 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:47,468 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:47,469 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:47,536 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:47,536 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:47,603 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:49,538 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:49,538 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:49,539 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:49,620 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:49,621 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:49,691 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:51,622 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:51,622 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:51,622 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:51,684 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:51,685 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:51,746 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:53,686 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:53,686 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:53,687 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:53,750 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:53,751 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:53,812 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:55,752 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:55,752 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:55,753 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:55,753 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:55,815 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:55,816 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:55,880 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:57,817 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:57,817 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:57,817 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:57,817 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:57,890 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:57,891 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:04:57,958 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:04:59,892 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:04:59,893 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:04:59,893 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:04:59,893 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:04:59,956 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:04:59,957 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:00,020 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:01,958 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:01,959 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:01,959 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:01,959 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:02,041 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:02,042 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:02,111 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:04,042 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:04,043 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:04,043 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:04,112 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:04,114 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:04,174 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:06,115 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:06,115 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:06,115 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:06,186 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:06,187 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:06,258 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:08,188 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:08,188 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:08,188 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:08,188 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:08,251 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:08,252 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:08,313 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:10,252 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:10,253 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:10,253 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:10,316 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:10,316 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:10,378 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:12,319 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:12,320 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:12,321 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:12,322 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:12,391 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:12,392 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:12,453 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:14,393 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:14,393 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:14,393 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:14,457 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:14,458 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:14,519 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:16,459 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:16,460 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:16,460 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:16,522 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:16,523 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:16,586 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:18,524 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:18,524 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:18,525 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:18,525 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:18,595 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:18,596 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:18,660 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:20,598 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:20,598 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:20,598 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:20,663 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:20,664 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:20,725 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:22,665 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:22,665 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:22,666 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:22,728 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:22,729 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:22,790 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:24,730 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:24,731 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:24,731 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:24,809 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:24,810 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:24,900 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:26,812 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:26,812 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:26,812 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:26,876 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:26,878 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:26,939 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:28,879 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:28,879 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:28,880 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:28,943 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:28,943 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:29,007 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:30,945 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:30,945 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:30,946 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:31,009 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:31,010 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:31,071 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:33,011 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:33,011 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:33,011 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:33,088 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:33,088 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:33,160 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:35,090 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:35,090 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:35,091 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:35,165 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:35,165 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:35,238 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:37,166 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:37,167 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:37,167 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:37,167 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:37,231 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:37,231 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:37,294 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:39,233 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:39,233 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:39,233 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:39,233 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:39,298 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:39,299 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:39,361 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:41,299 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:41,300 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:41,300 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:41,300 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:41,364 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:41,364 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:41,426 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:43,365 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:43,365 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:43,366 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:43,366 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:43,429 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:43,429 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:43,494 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:45,431 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:45,432 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:45,432 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:45,519 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:45,520 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:45,609 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:47,520 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:47,521 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:47,521 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:47,521 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:47,584 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:47,584 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:47,648 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:49,585 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:49,586 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:49,586 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:49,586 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:49,649 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:49,649 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:49,717 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:51,650 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:51,651 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:51,651 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:51,651 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:51,714 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:51,715 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:51,777 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:53,716 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:53,716 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:53,717 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:53,717 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:53,779 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:53,780 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:53,844 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:55,781 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:55,781 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:55,781 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:55,782 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:55,844 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:55,846 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:55,910 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:57,847 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:57,847 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:57,847 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:57,848 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:05:57,926 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:05:57,927 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:05:58,000 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:05:59,927 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:05:59,928 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:05:59,928 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:05:59,928 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:00,007 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:00,008 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:00,079 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:02,009 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:02,009 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:02,009 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:02,010 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:02,078 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:02,079 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:02,145 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:04,080 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:04,081 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:04,081 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:04,081 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:04,144 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:04,145 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:04,207 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:06,147 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:06,147 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:06,147 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:06,246 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:06,246 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:06,323 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:08,248 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:08,248 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:08,248 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:08,312 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:08,313 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:08,373 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:10,314 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:10,314 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:10,315 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:10,380 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:10,381 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:10,444 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:12,381 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:12,382 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:12,382 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:12,382 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:12,446 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:12,446 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:12,509 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:14,447 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:14,447 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:14,447 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:14,534 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:14,535 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:14,618 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:16,536 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:16,537 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:16,537 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:16,537 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:16,600 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:16,601 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:16,665 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:18,602 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:18,602 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:18,602 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:18,602 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:18,665 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:18,666 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:18,729 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:20,666 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:20,666 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:20,667 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:20,667 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:20,731 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:20,732 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:20,792 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:22,733 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:22,733 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:22,734 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:22,797 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:22,798 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:22,865 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:24,799 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:24,799 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:24,799 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:24,800 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:24,868 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:24,869 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:24,932 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:26,869 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:26,870 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:26,870 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:26,870 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:26,932 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:26,933 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:26,994 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:28,934 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:28,934 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:28,934 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:28,999 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:29,000 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:29,061 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:31,001 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:31,001 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:31,002 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:31,069 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:31,070 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:31,136 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:33,071 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:33,072 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:33,072 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:33,135 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:33,136 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:33,201 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:35,137 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:35,137 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:35,137 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:35,224 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:35,225 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:35,312 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:37,226 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:37,226 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:37,227 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:37,227 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:37,291 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:37,292 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:37,355 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:39,292 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:39,293 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:39,293 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:39,294 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:39,373 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:39,373 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:39,447 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:41,374 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:41,375 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:41,375 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:41,375 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:41,441 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:41,442 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:41,503 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:43,444 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:43,444 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:43,444 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:43,509 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:43,510 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:43,574 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:45,511 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:45,511 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:45,512 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:45,512 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:45,575 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:45,576 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:45,639 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:47,577 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:47,577 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:47,577 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:47,578 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:47,641 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:47,643 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:47,702 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:49,644 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:49,644 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:49,645 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:49,723 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:49,724 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:49,790 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:51,725 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:51,725 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:51,726 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:51,726 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:51,788 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:51,788 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:51,851 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:53,790 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:06:53,790 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:53,790 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:53,790 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:53,853 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:53,853 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:53,916 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:55,855 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:55,855 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:55,856 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:55,924 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:55,925 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:55,988 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:06:57,926 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:06:57,926 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:06:57,927 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:06:58,008 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:06:58,009 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:06:58,089 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:00,009 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:00,010 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:00,010 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:00,010 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:00,073 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:00,073 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:00,136 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:02,074 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:02,074 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:02,075 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:02,075 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:02,145 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:02,146 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:02,210 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:04,148 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:04,148 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:04,148 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:04,214 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:04,215 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:04,277 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:06,216 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:06,216 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:06,216 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:06,281 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:06,282 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:06,343 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:08,283 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:08,284 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:08,284 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:08,360 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:08,361 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:08,442 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:10,362 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:10,362 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:10,363 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:10,363 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:10,450 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:10,450 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:10,534 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:12,451 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:12,452 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:12,452 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:12,452 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:12,515 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:12,516 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:12,579 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:14,517 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:14,517 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:14,517 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:14,518 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:14,581 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:14,582 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:14,645 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:16,583 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:16,583 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:16,583 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:16,583 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:16,647 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:16,648 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:16,711 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:18,649 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:18,649 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:18,649 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:18,650 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:18,712 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:18,713 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:18,781 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:20,715 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:20,715 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:20,715 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:20,784 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:20,785 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:20,848 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:22,786 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:22,786 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:22,786 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:22,786 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:22,851 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:22,852 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:22,912 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:24,853 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:24,853 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:24,854 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:24,917 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:24,918 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:24,981 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:26,919 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:26,920 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:26,920 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:26,920 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:26,994 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:26,996 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:27,072 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:28,997 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:28,997 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:28,997 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:29,060 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:29,060 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:29,121 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:31,061 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:31,062 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:31,062 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:31,127 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:31,128 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:31,194 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:33,130 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:33,130 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:33,130 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:33,130 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:33,195 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:33,196 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:33,275 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:35,197 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:35,198 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:35,198 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:35,260 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:35,261 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:35,323 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:37,262 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:37,262 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:37,262 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:37,263 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:37,328 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:37,330 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:37,391 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:39,331 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:39,331 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:39,332 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:39,415 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:39,416 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:39,496 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:41,417 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:41,417 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:41,417 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:41,418 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:41,480 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:41,481 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:41,541 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:43,481 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:43,481 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:43,482 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:43,546 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:43,546 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:43,610 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:45,547 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:45,548 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:45,548 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:45,548 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:45,611 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:45,612 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:45,674 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:47,612 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:47,613 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:47,613 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:47,676 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:47,676 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:47,741 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:49,678 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:49,678 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:49,678 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:49,678 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:49,741 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:49,742 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:49,804 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:51,743 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:51,743 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:51,744 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:51,809 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:51,809 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:51,871 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:53,810 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:53,811 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:53,811 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:53,897 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:53,898 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:53,985 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:55,899 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:07:55,899 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:55,900 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:55,900 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:55,963 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:55,963 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:56,025 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:07:57,965 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:07:57,965 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:07:57,965 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:07:58,030 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:07:58,030 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:07:58,095 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:00,031 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:00,031 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:00,031 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:00,032 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:00,096 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:00,097 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:00,158 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:02,098 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:02,098 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:02,099 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:02,192 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:02,193 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:02,281 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:04,194 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:04,195 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:04,195 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:04,261 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:04,261 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:04,326 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:06,263 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:06,263 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:06,263 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:06,264 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:06,355 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:06,356 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:06,447 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:08,357 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:08,357 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:08,358 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:08,358 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:08,422 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:08,422 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:08,486 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:10,423 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:10,423 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:10,424 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:10,424 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:10,491 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:10,492 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:10,555 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:12,493 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:12,493 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:12,494 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:12,575 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:12,576 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:12,651 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:14,577 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:14,577 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:14,577 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:14,578 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:14,684 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:14,685 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:14,748 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:16,686 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:16,686 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:16,687 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:16,687 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:16,749 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:16,750 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:16,813 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:18,752 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:18,752 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:18,753 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:18,820 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:18,821 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:18,884 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:20,822 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:20,822 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:20,822 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:20,885 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:20,886 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:20,948 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:22,887 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:22,888 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:22,888 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:22,888 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:22,960 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:22,961 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:23,025 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:24,962 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:24,963 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:24,963 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:25,026 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:25,027 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:25,088 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:27,027 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:27,027 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:27,027 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:27,028 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:27,091 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:27,092 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:27,155 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:29,092 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:29,093 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:29,093 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:29,093 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:29,157 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:29,157 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:29,221 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:31,159 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:31,160 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:31,160 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:31,223 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:31,223 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:31,287 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:33,226 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:33,226 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:33,226 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:33,227 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:33,292 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:33,293 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:33,355 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:35,294 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:35,294 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:35,294 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:35,294 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:35,379 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:35,379 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:35,459 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:37,380 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:37,381 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:37,381 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:37,471 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:37,471 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:37,561 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:39,472 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:39,472 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:39,473 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:39,473 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:39,535 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:39,536 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:39,597 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:41,537 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:41,537 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:41,537 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:41,599 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:41,600 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:41,664 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:43,601 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:43,601 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:43,601 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:43,601 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:43,664 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:43,665 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:43,727 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:45,666 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:45,666 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:45,667 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:45,667 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:45,741 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:45,742 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:45,793 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:47,743 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:47,743 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:47,743 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:47,808 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:47,809 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:47,880 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:49,809 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:49,809 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:49,810 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:49,810 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:49,874 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:49,876 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:49,940 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:51,877 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:51,877 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:51,877 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:51,940 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:51,942 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:52,006 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:53,943 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:53,943 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:53,944 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:54,017 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:54,018 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:54,068 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:56,019 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:56,019 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:56,019 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:56,099 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:56,100 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:56,186 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:08:58,101 - pyrogram.connection.transport.tcp.tcp - INFO - Close exception: ConnectionResetError [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-01-14 02:08:58,101 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:08:58,102 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:08:58,102 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:08:58,183 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:08:58,184 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:08:58,251 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 02:09:00,186 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 02:09:00,186 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 02:09:00,187 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 02:09:00,360 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 02:09:00,361 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 02:09:00,761 - pyrogram.client - INFO - {
+    "_": "types.UpdatesTooLong"
+}
+2026-01-14 02:09:00,945 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 02:09:00,946 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 02:09:00,946 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 02:09:00,946 - pyrogram.session.session - INFO - Session started
+2026-01-14 02:09:00,946 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 03:01:25,408 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets) (confidence: 9)
+2026-01-14 03:01:25,437 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-14 03:01:25,724 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 03:34:35,356 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets) (confidence: 9)
+2026-01-14 03:34:35,356 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-14 03:34:35,620 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 03:43:04,466 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss) (confidence: 15)
+2026-01-14 03:43:04,466 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-14 03:43:04,788 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 03:49:19,462 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_targets, multiple_targets, has_stop_loss) (confidence: 12)
+2026-01-14 03:49:19,462 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-14 03:49:19,724 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 04:28:13,667 - __main__ - INFO - ✅ Signal detected from Ramos Crypto: High confidence (has_symbol, has_direction, has_targets, has_stop_loss, has_leverage, has_price_data) (confidence: 13)
+2026-01-14 04:28:13,668 - __main__ - INFO - 📨 New signal from Ramos Crypto
+2026-01-14 04:28:13,669 - __main__ - INFO - ✅ Signal detected from Ramos Crypto: High confidence (has_symbol, has_direction, has_entry, has_targets, has_stop_loss, has_price_data) (confidence: 15)
+2026-01-14 04:28:13,670 - __main__ - INFO - 📨 New signal from Ramos Crypto
+2026-01-14 04:28:13,904 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 04:28:14,103 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 04:28:32,780 - __main__ - INFO - ✅ Signal detected from Ramos Crypto: High confidence (has_symbol, has_direction, has_entry, has_targets, has_stop_loss, has_leverage, has_price_data) (confidence: 16)
+2026-01-14 04:28:32,781 - __main__ - INFO - 📨 New signal from Ramos Crypto
+2026-01-14 04:28:33,027 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 04:28:51,972 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 04:28:52,190 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-14 05:00:44,682 - __main__ - INFO - ============================================================
+2026-01-14 05:00:44,682 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-14 05:00:44,682 - __main__ - INFO - ============================================================
+2026-01-14 05:00:44,682 - __main__ - INFO - API ID: 27590479
+2026-01-14 05:00:44,682 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-14 05:00:44,683 - __main__ - INFO - Source Channels: 5
+2026-01-14 05:00:44,683 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-14 05:00:44,683 - __main__ - INFO - Dry Run: False
+2026-01-14 05:00:44,683 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-14 05:00:44,683 - __main__ - INFO - ============================================================
+2026-01-14 05:00:44,683 - __main__ - INFO - Starting Telegram client...
+2026-01-14 05:00:45,674 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 05:00:45,857 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 05:00:45,858 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 05:00:46,742 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 05:00:46,742 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 05:00:46,742 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 05:00:46,743 - pyrogram.session.session - INFO - Session started
+2026-01-14 05:00:46,745 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 05:00:47,143 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-14 05:00:47,371 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-14 05:00:47,372 - __main__ - INFO - Verifying source channels...
+2026-01-14 05:00:47,797 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-14 05:00:48,253 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-14 05:00:48,898 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-14 05:00:49,326 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-14 05:00:49,786 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-14 05:00:49,786 - __main__ - INFO - 
+============================================================
+2026-01-14 05:00:49,786 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-14 05:00:49,787 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-14 05:00:49,787 - __main__ - INFO - ============================================================
+
+2026-01-14 05:00:49,787 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-14 05:09:34,265 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 05:09:34,562 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 05:09:34,564 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 05:09:34,564 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 05:09:34,565 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 05:09:34,565 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-14 05:09:34,565 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-14 05:09:38,222 - __main__ - INFO - ============================================================
+2026-01-14 05:09:38,223 - __main__ - INFO - Telegram Message Forwarder - First Goal
+2026-01-14 05:09:38,223 - __main__ - INFO - ============================================================
+2026-01-14 05:09:38,223 - __main__ - INFO - API ID: 27590479
+2026-01-14 05:09:38,223 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-14 05:09:38,224 - __main__ - INFO - Source Channels: 5
+2026-01-14 05:09:38,224 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-14 05:09:38,224 - __main__ - INFO - Dry Run: False
+2026-01-14 05:09:38,224 - __main__ - INFO - Timezone: Europe/Stockholm
+2026-01-14 05:09:38,224 - __main__ - INFO - ============================================================
+2026-01-14 05:09:38,225 - bybit_client - INFO - ByBit client initialized (testnet=False)
+2026-01-14 05:09:38,225 - __main__ - INFO - Trading bot integration initialized
+2026-01-14 05:09:38,226 - __main__ - INFO - Starting Telegram client...
+2026-01-14 05:09:38,803 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 05:09:38,979 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 05:09:38,984 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 05:09:39,774 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 05:09:39,774 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 05:09:39,774 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 05:09:39,775 - pyrogram.session.session - INFO - Session started
+2026-01-14 05:09:39,777 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 05:09:40,161 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-14 05:09:40,161 - trading_bot_integration - INFO - Initializing trading bot integration...
+2026-01-14 05:09:41,104 - bybit_client - ERROR - ❌ ByBit connection failed: Http status code is not 200. (ErrCode: 401) (ErrTime: 10:09:41).
+Request → GET https://api.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-14 05:09:41,104 - trading_bot_integration - ERROR - ❌ ByBit connection failed
+2026-01-14 05:09:41,104 - __main__ - ERROR - ❌ Trading bot initialization failed
+2026-01-14 05:09:41,356 - __main__ - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-14 05:09:41,356 - __main__ - INFO - Verifying source channels...
+2026-01-14 05:09:41,776 - __main__ - INFO - ✅ CRYPTORAKETEN: 🚀Cryptoraketen [VIP- Signals]📊
+2026-01-14 05:09:42,206 - __main__ - INFO - ✅ SMART_CRYPTO: Smart Crypto Signals Private
+2026-01-14 05:09:42,880 - __main__ - INFO - ✅ Ramos Crypto: RAMOS Crypto 🪐🫰🏻
+2026-01-14 05:09:43,362 - __main__ - INFO - ✅ SWE Crypto: Sweden_Crypto Whales®
+2026-01-14 05:09:43,758 - __main__ - INFO - ✅ Hassan tahnon: Hassan crypto ®
+2026-01-14 05:09:43,759 - __main__ - INFO - 
+============================================================
+2026-01-14 05:09:43,759 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-14 05:09:43,759 - __main__ - INFO - 📊 Dry Run Mode: DISABLED
+2026-01-14 05:09:43,759 - __main__ - INFO - ============================================================
+
+2026-01-14 05:09:43,760 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-14 05:16:52,982 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: High confidence (has_symbol, has_direction, has_entry, has_targets, multiple_targets, has_stop_loss, has_price_data) (confidence: 16)
+2026-01-14 05:16:52,984 - __main__ - INFO - 📨 New signal from SMART_CRYPTO
+2026-01-14 05:16:53,379 - __main__ - INFO - ✅ Message forwarded to personal channel
+2026-01-14 07:04:36,933 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 07:04:37,112 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 07:04:37,114 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 07:04:37,114 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 07:04:37,114 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 07:04:37,115 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-14 07:04:37,117 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-14 10:59:28,768 - __main__ - INFO - ============================================================
+2026-01-14 10:59:28,768 - __main__ - INFO - TRADING BOT - STAGE 0 IMPLEMENTATION
+2026-01-14 10:59:28,769 - __main__ - INFO - ============================================================
+2026-01-14 10:59:28,769 - __main__ - INFO - Telegram API ID: 27590479
+2026-01-14 10:59:28,769 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-14 10:59:28,769 - __main__ - INFO - Source Channels: 5
+2026-01-14 10:59:28,769 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-14 10:59:28,769 - __main__ - INFO - Trading Enabled: True
+2026-01-14 10:59:28,770 - __main__ - INFO - Dry Run: False
+2026-01-14 10:59:28,770 - __main__ - INFO - Extract Signals Only: True
+2026-01-14 10:59:28,770 - __main__ - INFO - ============================================================
+2026-01-14 10:59:28,770 - __main__ - INFO - Starting Telegram client...
+2026-01-14 10:59:29,783 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 10:59:29,967 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 10:59:29,969 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 10:59:30,792 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 10:59:30,792 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 10:59:30,792 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 10:59:30,792 - pyrogram.session.session - INFO - Session started
+2026-01-14 10:59:30,795 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 10:59:31,373 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-14 10:59:31,373 - __main__ - INFO - 
+============================================================
+2026-01-14 10:59:31,374 - __main__ - INFO - RUNNING STAGE 0 - INITIALIZATION & SAFETY
+2026-01-14 10:59:31,374 - __main__ - INFO - ============================================================
+
+2026-01-14 10:59:31,374 - startup_checker - INFO - ============================================================
+2026-01-14 10:59:31,374 - startup_checker - INFO - STAGE 0 - INITIALIZATION & SAFETY
+2026-01-14 10:59:31,374 - startup_checker - INFO - ============================================================
+2026-01-14 10:59:31,429 - startup_checker - INFO - ✅ Config Load: Configuration loaded successfully
+2026-01-14 10:59:31,430 - startup_checker - INFO - ✅ Governance Check: Production readiness confirmed
+2026-01-14 10:59:31,430 - bybit_client - INFO - ByBit client initialized (testnet=False)
+2026-01-14 10:59:32,235 - bybit_client - ERROR - ❌ ByBit connection failed: Http status code is not 200. (ErrCode: 401) (ErrTime: 15:59:32).
+Request → GET https://api.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-14 10:59:32,235 - startup_checker - ERROR - ❌ ByBit API Check: Failed to connect to ByBit API (retCode != 0)
+2026-01-14 10:59:32,235 - pybit._websocket_stream - INFO - WebSocket Unified V5 (Auth) attempting connection...
+2026-01-14 10:59:34,693 - websocket - INFO - Websocket connected
+2026-01-14 10:59:34,693 - pybit._websocket_stream - INFO - WebSocket Unified V5 (Auth) connected
+2026-01-14 10:59:34,694 - bybit_client - INFO - ✅ WebSocket connection initiated
+2026-01-14 10:59:34,823 - websocket - ERROR - error from callback <function _WebSocketManager._connect.<locals>.<lambda> at 0x00000151AD268250>: Authorization for Unified V5 (Auth) failed. Please check your API keys and resync your system time. Raw error: {'success': False, 'ret_msg': 'Params Error', 'op': 'auth', 'conn_id': 'd5eajicfnonu7k424uqg-7n2l2'}
+2026-01-14 10:59:34,953 - websocket - ERROR - error from callback <function _WebSocketManager._connect.<locals>.<lambda> at 0x00000151AD269010>: Authorization for Unified V5 (Auth) failed. Please check your API keys and resync your system time. Raw error: {'success': False, 'ret_msg': 'Params Error', 'op': 'auth', 'conn_id': 'd5eajicfnonu7k424uqg-7n2l2'}
+2026-01-14 10:59:34,953 - websocket - ERROR - Authorization for Unified V5 (Auth) failed. Please check your API keys and resync your system time. Raw error: {'success': False, 'ret_msg': 'Params Error', 'op': 'auth', 'conn_id': 'd5eajicfnonu7k424uqg-7n2l2'} - goodbye
+2026-01-14 10:59:36,722 - bybit_client - INFO - ✅ WebSocket heartbeat OK (2.0s ago)
+2026-01-14 10:59:36,723 - startup_checker - INFO - ✅ ByBit WebSocket Check: WebSocket connected with heartbeat ≤30s
+2026-01-14 10:59:37,133 - startup_checker - INFO - ✅ Channel verified: CRYPTORAKETEN (🚀Cryptoraketen [VIP- Signals]📊)
+2026-01-14 10:59:37,549 - startup_checker - INFO - ✅ Channel verified: SMART_CRYPTO (Smart Crypto Signals Private)
+2026-01-14 10:59:37,955 - startup_checker - INFO - ✅ Channel verified: Ramos Crypto (RAMOS Crypto 🪐🫰🏻)
+2026-01-14 10:59:38,605 - startup_checker - INFO - ✅ Channel verified: SWE Crypto (Sweden_Crypto Whales®)
+2026-01-14 10:59:39,046 - startup_checker - INFO - ✅ Channel verified: Hassan tahnon (Hassan crypto ®)
+2026-01-14 10:59:39,276 - startup_checker - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-14 10:59:39,277 - startup_checker - INFO - ✅ Telegram Check: Telegram connected (5/5 channels verified, 0 not in cache)
+2026-01-14 10:59:39,433 - bybit_client - ERROR - Failed to get account balance: Http status code is not 200. (ErrCode: 401) (ErrTime: 15:59:39).
+Request → GET https://api.bybit.com/v5/account/wallet-balance: accountType=UNIFIED&coin=USDT.
+2026-01-14 10:59:39,435 - startup_checker - INFO - ✅ Baseline Fetch: Baseline data fetched: Balance=402.10 USDT, Positions=0, Orders=0
+2026-01-14 10:59:39,443 - startup_checker - WARNING - ⚠️  Critical checks failed, entering DEMO MODE
+2026-01-14 10:59:39,444 - startup_checker - INFO - ============================================================
+2026-01-14 10:59:39,445 - startup_checker - INFO - ✅ STAGE 0 COMPLETE - Bot ready (duration: 8.06s)
+2026-01-14 10:59:39,446 - startup_checker - INFO - ============================================================
+2026-01-14 10:59:39,740 - startup_checker - INFO - ✅ Startup notification sent to personal channel
+2026-01-14 10:59:39,740 - __main__ - WARNING - 
+⚠️  DEMO MODE ACTIVE - Extracting signals only, no trading
+
+2026-01-14 10:59:39,741 - __main__ - INFO - 
+============================================================
+2026-01-14 10:59:39,741 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-14 10:59:39,741 - __main__ - INFO - 📊 Mode: DEMO (Extract Only)
+2026-01-14 10:59:39,741 - __main__ - INFO - 📂 Signal Log: logs\extracted_signals.log
+2026-01-14 10:59:39,741 - __main__ - INFO - ============================================================
+
+2026-01-14 10:59:39,742 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-14 11:08:10,692 - __main__ - INFO - ✅ Signal detected from Ramos Crypto: Signal detected (has_symbol, has_direction, has_entry, has_targets, has_stop_loss) (confidence: 14)
+2026-01-14 11:08:10,692 - signal_extractor - INFO - 
+================================================================================
+2026-01-14 11:08:10,692 - signal_extractor - INFO - SIGNAL EXTRACTED
+2026-01-14 11:08:10,693 - signal_extractor - INFO - Channel: Ramos Crypto
+2026-01-14 11:08:10,693 - signal_extractor - INFO - Message ID: 5625
+2026-01-14 11:08:10,693 - signal_extractor - INFO - Timestamp: 2026-01-14 11:08:10
+2026-01-14 11:08:10,694 - signal_extractor - INFO - Reason: Signal detected (has_symbol, has_direction, has_entry, has_targets, has_stop_loss) (confidence: 14)
+2026-01-14 11:08:10,694 - signal_extractor - INFO - ================================================================================
+2026-01-14 11:08:10,694 - signal_extractor - INFO - #GUN LONG
+
+Entry : 0.03001
+
+Stop Loss : 0.275
+
+| (TP) Targets : 
+- $0.0305
+- $0.031
+2026-01-14 11:08:10,695 - signal_extractor - INFO - ================================================================================
+
+2026-01-14 11:08:10,695 - __main__ - INFO - 📝 Signal logged to: logs\extracted_signals.log
+2026-01-14 11:46:07,705 - __main__ - INFO - ✅ Signal detected from SMART_CRYPTO: Signal detected (has_symbol, has_direction, has_entry, has_targets, has_stop_loss) (confidence: 14)
+2026-01-14 11:46:07,706 - signal_extractor - INFO - 
+================================================================================
+2026-01-14 11:46:07,706 - signal_extractor - INFO - SIGNAL EXTRACTED
+2026-01-14 11:46:07,706 - signal_extractor - INFO - Channel: SMART_CRYPTO
+2026-01-14 11:46:07,707 - signal_extractor - INFO - Message ID: 18735
+2026-01-14 11:46:07,707 - signal_extractor - INFO - Timestamp: 2026-01-14 11:46:07
+2026-01-14 11:46:07,707 - signal_extractor - INFO - Reason: Signal detected (has_symbol, has_direction, has_entry, has_targets, has_stop_loss) (confidence: 14)
+2026-01-14 11:46:07,707 - signal_extractor - INFO - ================================================================================
+2026-01-14 11:46:07,707 - signal_extractor - INFO - 🟢 Opening LONG 📈
+
+🟢 Symbol: LINEAUSDT
+💰 Price: 0.007262
+
+⚡ OPPORTUNITY DETECTED ⚡
+📊 High volatility asset with strong volume
+💫 Potential for quick profits
+
+➡️ Entry: 0.007262
+🎯 Targets:
+   TP1: 0.007458
+   TP2: 0.007538
+   TP3: 0.007661
+🛑 SL: 0.006863
+📊 Risk: 3.0/10
+2026-01-14 11:46:07,708 - signal_extractor - INFO - ================================================================================
+
+2026-01-14 11:46:07,708 - __main__ - INFO - 📝 Signal logged to: logs\extracted_signals.log
+2026-01-14 12:57:03,417 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 12:57:03,715 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 12:57:03,717 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 12:57:03,717 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 12:57:03,717 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 12:57:03,718 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-14 12:57:03,720 - __main__ - INFO - 
+👋 Goodbye!
+2026-01-14 12:57:11,861 - __main__ - INFO - ============================================================
+2026-01-14 12:57:11,861 - __main__ - INFO - TRADING BOT - STAGE 0 IMPLEMENTATION
+2026-01-14 12:57:11,862 - __main__ - INFO - ============================================================
+2026-01-14 12:57:11,862 - __main__ - INFO - Telegram API ID: 27590479
+2026-01-14 12:57:11,862 - __main__ - INFO - Phone: +46 70 368 9310
+2026-01-14 12:57:11,862 - __main__ - INFO - Source Channels: 5
+2026-01-14 12:57:11,862 - __main__ - INFO - Personal Channel: -1003179263982
+2026-01-14 12:57:11,862 - __main__ - INFO - Trading Enabled: True
+2026-01-14 12:57:11,862 - __main__ - INFO - Dry Run: False
+2026-01-14 12:57:11,863 - __main__ - INFO - Extract Signals Only: True
+2026-01-14 12:57:11,863 - __main__ - INFO - ============================================================
+2026-01-14 12:57:11,863 - __main__ - INFO - Starting Telegram client...
+2026-01-14 12:57:13,309 - pyrogram.connection.connection - INFO - Connecting...
+2026-01-14 12:57:14,485 - pyrogram.connection.connection - INFO - Connected! Production DC4 - IPv4
+2026-01-14 12:57:14,487 - pyrogram.session.session - INFO - NetworkTask started
+2026-01-14 12:57:15,257 - pyrogram.session.session - INFO - Session initialized: Layer 158
+2026-01-14 12:57:15,257 - pyrogram.session.session - INFO - Device: CPython 3.14.2 - Pyrogram 2.0.106
+2026-01-14 12:57:15,257 - pyrogram.session.session - INFO - System: Windows 10 (en)
+2026-01-14 12:57:15,258 - pyrogram.session.session - INFO - Session started
+2026-01-14 12:57:15,260 - pyrogram.session.session - INFO - PingTask started
+2026-01-14 12:57:15,680 - __main__ - INFO - ✅ Telegram client started successfully
+2026-01-14 12:57:15,680 - __main__ - INFO - 
+============================================================
+2026-01-14 12:57:15,680 - __main__ - INFO - RUNNING STAGE 0 - INITIALIZATION & SAFETY
+2026-01-14 12:57:15,681 - __main__ - INFO - ============================================================
+
+2026-01-14 12:57:15,681 - startup_checker - INFO - ============================================================
+2026-01-14 12:57:15,681 - startup_checker - INFO - STAGE 0 - INITIALIZATION & SAFETY
+2026-01-14 12:57:15,681 - startup_checker - INFO - ============================================================
+2026-01-14 12:57:15,681 - startup_checker - INFO - ✅ Config Load: Configuration loaded successfully
+2026-01-14 12:57:15,681 - startup_checker - INFO - ✅ Governance Check: Production readiness confirmed
+2026-01-14 12:57:15,682 - bingx_client - INFO - BingX client initialized (testnet=False)
+2026-01-14 12:57:16,427 - bingx_client - ERROR - ❌ BingX connection failed: timestamp is invalid (code: 109400)
+2026-01-14 12:57:16,428 - startup_checker - ERROR - ❌ BingX API Check: Failed to connect to BingX API (code != 0)
+2026-01-14 12:57:16,428 - bingx_client - INFO - ✅ WebSocket connection initiated
+2026-01-14 12:57:18,440 - bingx_client - INFO - ✅ WebSocket heartbeat OK (2.0s ago)
+2026-01-14 12:57:18,441 - startup_checker - INFO - ✅ BingX WebSocket Check: WebSocket connected with heartbeat ≤30s
+2026-01-14 12:57:18,923 - startup_checker - INFO - ✅ Channel verified: CRYPTORAKETEN (🚀Cryptoraketen [VIP- Signals]📊)
+2026-01-14 12:57:19,389 - startup_checker - INFO - ✅ Channel verified: SMART_CRYPTO (Smart Crypto Signals Private)
+2026-01-14 12:57:19,827 - startup_checker - INFO - ✅ Channel verified: Ramos Crypto (RAMOS Crypto 🪐🫰🏻)
+2026-01-14 12:57:20,754 - startup_checker - INFO - ✅ Channel verified: SWE Crypto (Sweden_Crypto Whales®)
+2026-01-14 12:57:21,194 - startup_checker - INFO - ✅ Channel verified: Hassan tahnon (Hassan crypto ®)
+2026-01-14 12:57:21,425 - startup_checker - INFO - ✅ Personal channel verified: Stratos2 superstar New Bing X
+2026-01-14 12:57:21,425 - startup_checker - INFO - ✅ Telegram Check: Telegram connected (5/5 channels verified, 0 not in cache)
+2026-01-14 12:57:22,039 - startup_checker - INFO - ✅ Baseline Fetch: Baseline data fetched: Balance=402.10 USDT, Positions=0, Orders=0
+2026-01-14 12:57:22,039 - startup_checker - WARNING - ⚠️  Critical checks failed, entering DEMO MODE
+2026-01-14 12:57:22,039 - startup_checker - INFO - ============================================================
+2026-01-14 12:57:22,040 - startup_checker - INFO - ✅ STAGE 0 COMPLETE - Bot ready (duration: 6.36s)
+2026-01-14 12:57:22,040 - startup_checker - INFO - ============================================================
+2026-01-14 12:57:22,294 - startup_checker - INFO - ✅ Startup notification sent to personal channel
+2026-01-14 12:57:22,294 - __main__ - WARNING - 
+⚠️  DEMO MODE ACTIVE - Extracting signals only, no trading
+
+2026-01-14 12:57:22,294 - __main__ - INFO - 
+============================================================
+2026-01-14 12:57:22,295 - __main__ - INFO - 🚀 Bot is running and monitoring channels...
+2026-01-14 12:57:22,295 - __main__ - INFO - 📊 Mode: DEMO (Extract Only)
+2026-01-14 12:57:22,295 - __main__ - INFO - 📂 Signal Log: logs\extracted_signals.log
+2026-01-14 12:57:22,295 - __main__ - INFO - ============================================================
+
+2026-01-14 12:57:22,296 - __main__ - INFO - Monitoring for messages... Press Ctrl+C to stop
+2026-01-14 12:58:00,324 - __main__ - INFO - Stopping Telegram client...
+2026-01-14 12:58:00,439 - pyrogram.session.session - INFO - PingTask stopped
+2026-01-14 12:58:00,439 - pyrogram.session.session - INFO - NetworkTask stopped
+2026-01-14 12:58:00,439 - pyrogram.connection.connection - INFO - Disconnected
+2026-01-14 12:58:00,440 - pyrogram.session.session - INFO - Session stopped
+2026-01-14 12:58:00,440 - __main__ - INFO - ✅ Telegram client stopped
+2026-01-14 12:58:00,441 - __main__ - INFO - 
+👋 Goodbye!

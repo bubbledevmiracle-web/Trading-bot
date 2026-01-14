@@ -3,10 +3,11 @@
 """
 Trading Bot Integration
 ========================
-Integrates Telegram signal detection with BingX trading execution.
+Integrates Telegram signal detection with ByBit trading execution.
 
 Author: Trading Bot Project
 Date: 2026-01-08
+Updated: 2026-01-14
 """
 
 import asyncio
@@ -15,6 +16,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Dict, Optional
 
+import config
 from bingx_client import BingXClient
 from order_manager import OrderManager
 from signal_parser import SignalParser
@@ -62,7 +64,7 @@ class TradingBotIntegration:
         """
         Format Telegram message template after order placement.
         
-        Template header: "SENT ONLY AFTER BYBIT CONFIRMATION (retCode=0/fills)"
+        Template header: "SENT ONLY AFTER BINGX CONFIRMATION (code=0/fills)"
         
         Args:
             order_result: Order placement result
@@ -89,7 +91,7 @@ class TradingBotIntegration:
         
         # Format template according to requirements
         template = (
-            "SENT ONLY AFTER BYBIT CONFIRMATION (retCode=0/fills)\n\n"
+            "SENT ONLY AFTER BINGX CONFIRMATION (code=0/fills)\n\n"
             f"✅ Order Placed\n"
             f"🕒 Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"📢 Från kanal: {source_channel}\n"
@@ -194,7 +196,7 @@ class TradingBotIntegration:
             
             # Send to personal channel
             await telegram_client.send_message(
-                chat_id="-1003179263982",  # PERSONAL_CHANNEL_ID
+                chat_id=config.PERSONAL_CHANNEL_ID,
                 text=startup_message
             )
             

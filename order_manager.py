@@ -61,7 +61,7 @@ class OrderManager:
         if not symbol_info:
             return {
                 'success': False,
-                'error': f'Symbol {symbol} not found on BingX',
+                'error': f'Symbol {symbol} not found on ByBit',
                 'bot_order_id': bot_order_id
             }
         

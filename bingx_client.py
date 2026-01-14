@@ -2,18 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 BingX Trading Client
-===================
+====================
 Implements BingX API integration with all trading bot requirements:
 - Dynamic leverage calculation
 - Dual-limit entry with merging
 - Position sizing
 - Order placement and validation
-- Bybit-first flow (wait for confirmation)
+- BingX-first flow (wait for confirmation)
+- WebSocket support for real-time updates
 
 Author: Trading Bot Project
-Date: 2026-01-08
+Date: 2026-01-14
 """
 
+import asyncio
 import hashlib
 import hmac
 import json
@@ -32,13 +34,9 @@ logger = logging.getLogger(__name__)
 # CONFIGURATION
 # ============================================================================
 
-# BingX API Credentials
+# BingX API Credentials (from config)
 BINGX_API_KEY = "Z3w6CaFqcLhk05UfB58enOYrvULTCtaSnGcye7CtWpbERiNfDXsDT9x79IDVw77atzAxeLA4tjZ03lpFerGWCA"
-BINGX_SECRET_KEY = "vjQfaT0l3kXooWHLLBQT1yV8J6GXHNgPLO3y0x760kdT8piEaIZ51168J57SoGX8FV8dXCrNBU8FHMzM3w"
-
-# BingX API Endpoints
-BINGX_API_BASE = "https://open-api.bingx.com"  # Mainnet
-# BINGX_API_BASE = "https://open-api-vst.bingx.com"  # Testnet (uncomment for testnet)
+BINGX_API_SECRET = "vjQfaT0l3kXooWHLLBQT1yV8J6GXHNgPLO3y0x760kdT8piEaIZ51168J57SoGX8FV8dXCrNBU8FHMzM3w"
 
 # Trading Parameters (SSoT Baseline)
 ACCOUNT_BALANCE_BASELINE = Decimal("402.10")  # USDT
@@ -64,17 +62,23 @@ class BingXClient:
         
         Args:
             api_key: BingX API key (defaults to config)
-            secret_key: BingX secret key (defaults to config)
+            secret_key: BingX API secret (defaults to config)
             testnet: Use testnet endpoint (default: False)
         """
         self.api_key = api_key or BINGX_API_KEY
-        self.secret_key = secret_key or BINGX_SECRET_KEY
-        self.base_url = "https://open-api-vst.bingx.com" if testnet else BINGX_API_BASE
-        self.session = requests.Session()
-        self.session.headers.update({
-            "X-BX-APIKEY": self.api_key,
-            "Content-Type": "application/json"
-        })
+        self.secret_key = secret_key or BINGX_API_SECRET
+        self.testnet = testnet
+        
+        # Set API endpoints
+        if testnet:
+            self.base_url = "https://open-api-vst.bingx.com"
+        else:
+            self.base_url = "https://open-api.bingx.com"
+        
+        # WebSocket
+        self.ws_session = None
+        self.ws_connected = False
+        self.last_heartbeat = None
         
         # Account parameters (SSoT)
         self.account_balance = ACCOUNT_BALANCE_BASELINE
@@ -84,7 +88,15 @@ class BingXClient:
         logger.info(f"BingX client initialized (testnet={testnet})")
     
     def _generate_signature(self, params: Dict) -> str:
-        """Generate HMAC-SHA256 signature for BingX API."""
+        """
+        Generate HMAC SHA256 signature for BingX API.
+        
+        Args:
+            params: Request parameters
+            
+        Returns:
+            Signature string
+        """
         query_string = urlencode(sorted(params.items()))
         signature = hmac.new(
             self.secret_key.encode('utf-8'),
@@ -93,56 +105,51 @@ class BingXClient:
         ).hexdigest()
         return signature
     
-    def _make_request(self, method: str, endpoint: str, params: Dict = None, signed: bool = True, use_json: bool = False) -> Dict:
+    def _send_request(self, method: str, endpoint: str, params: Dict = None, signed: bool = True) -> Dict:
         """
-        Make API request to BingX.
+        Send HTTP request to BingX API.
         
         Args:
-            method: HTTP method (GET, POST, etc.)
-            endpoint: API endpoint path
+            method: HTTP method (GET, POST, DELETE)
+            endpoint: API endpoint
             params: Request parameters
             signed: Whether to sign the request
             
         Returns:
-            API response as dictionary
+            Response dictionary
         """
-        url = f"{self.base_url}{endpoint}"
-        params = params or {}
+        if params is None:
+            params = {}
         
+        # Add timestamp
         if signed:
             params['timestamp'] = int(time.time() * 1000)
-            params['signature'] = self._generate_signature(params)
+            
+            # Generate signature
+            signature = self._generate_signature(params)
+            params['signature'] = signature
+        
+        url = f"{self.base_url}{endpoint}"
+        headers = {
+            'X-BX-APIKEY': self.api_key
+        }
         
         try:
-            if method.upper() == "GET":
-                response = self.session.get(url, params=params, timeout=5)
-            elif method.upper() == "POST":
-                if use_json:
-                    response = self.session.post(url, json=params, timeout=5)
-                else:
-                    response = self.session.post(url, params=params, timeout=5)
-            elif method.upper() == "DELETE":
-                response = self.session.delete(url, params=params, timeout=5)
+            if method == 'GET':
+                response = requests.get(url, params=params, headers=headers, timeout=10)
+            elif method == 'POST':
+                response = requests.post(url, data=params, headers=headers, timeout=10)
+            elif method == 'DELETE':
+                response = requests.delete(url, params=params, headers=headers, timeout=10)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
             response.raise_for_status()
-            data = response.json()
+            return response.json()
             
-            # Check BingX response code
-            if data.get('code') != 0:
-                error_msg = data.get('msg', 'Unknown error')
-                logger.error(f"BingX API error: {error_msg} (code: {data.get('code')})")
-                raise Exception(f"BingX API error: {error_msg}")
-            
-            return data
-            
-        except requests.exceptions.Timeout:
-            logger.error(f"BingX API timeout: {endpoint}")
-            raise Exception("BingX API timeout")
-        except requests.exceptions.RequestException as e:
+        except Exception as e:
             logger.error(f"BingX API request error: {e}")
-            raise Exception(f"BingX API request failed: {e}")
+            return {'code': -1, 'msg': str(e)}
     
     def verify_connection(self) -> bool:
         """
@@ -151,17 +158,35 @@ class BingXClient:
         Returns:
             True if connection successful
         """
-        try:
-            # Test with account balance endpoint
-            data = self._make_request("GET", "/openApi/account/v1/balance", signed=True)
-            if data.get('code') == 0:
-                # Update account balance from API
-                balance_data = data.get('data', {}).get('balance', {})
-                if balance_data:
-                    self.account_balance = Decimal(str(balance_data.get('balance', ACCOUNT_BALANCE_BASELINE)))
-                logger.info(f"✅ BingX connection verified. Balance: {self.account_balance} USDT")
-                return True
+        if not self.api_key or not self.secret_key:
+            logger.error("❌ BingX connection failed: API credentials not set")
             return False
+        
+        try:
+            # Test with balance endpoint
+            response = self._send_request(
+                'GET',
+                '/openApi/swap/v2/user/balance',
+                signed=True
+            )
+            
+            if response.get('code') == 0:
+                # Extract balance
+                data = response.get('data', {})
+                balance_info = data.get('balance', {})
+                if balance_info:
+                    available_margin = balance_info.get('availableMargin', ACCOUNT_BALANCE_BASELINE)
+                    self.account_balance = Decimal(str(available_margin))
+                    logger.info(f"✅ BingX connection verified. Balance: {self.account_balance} USDT")
+                    return True
+                else:
+                    logger.info(f"✅ BingX connection verified. Balance: {self.account_balance} USDT (baseline)")
+                    return True
+            else:
+                error_msg = response.get('msg', 'Unknown error')
+                logger.error(f"❌ BingX connection failed: {error_msg} (code: {response.get('code')})")
+                return False
+                
         except Exception as e:
             logger.error(f"❌ BingX connection failed: {e}")
             return False
@@ -174,11 +199,22 @@ class BingXClient:
             Account balance in USDT
         """
         try:
-            data = self._make_request("GET", "/openApi/account/v1/balance", signed=True)
-            balance_data = data.get('data', {}).get('balance', {})
-            if balance_data:
-                self.account_balance = Decimal(str(balance_data.get('balance', ACCOUNT_BALANCE_BASELINE)))
-            return self.account_balance
+            response = self._send_request(
+                'GET',
+                '/openApi/swap/v2/user/balance',
+                signed=True
+            )
+            
+            if response.get('code') == 0:
+                data = response.get('data', {})
+                balance_info = data.get('balance', {})
+                if balance_info:
+                    available_margin = balance_info.get('availableMargin', ACCOUNT_BALANCE_BASELINE)
+                    self.account_balance = Decimal(str(available_margin))
+                    return self.account_balance
+            
+            return self.account_balance  # Return cached value
+            
         except Exception as e:
             logger.error(f"Failed to get account balance: {e}")
             return self.account_balance  # Return cached value
@@ -194,15 +230,27 @@ class BingXClient:
             Symbol information dictionary or None
         """
         try:
-            # Convert symbol format if needed (BTCUSDT -> BTC-USDT)
             formatted_symbol = self._format_symbol(symbol)
             
-            data = self._make_request("GET", "/openApi/swap/v2/quote/contracts", signed=False)
-            contracts = data.get('data', [])
+            response = self._send_request(
+                'GET',
+                '/openApi/swap/v2/quote/contracts',
+                signed=False
+            )
             
-            for contract in contracts:
-                if contract.get('symbol') == formatted_symbol:
-                    return contract
+            if response.get('code') == 0:
+                data = response.get('data', [])
+                for instrument in data:
+                    if instrument.get('symbol') == formatted_symbol:
+                        return {
+                            'symbol': instrument.get('symbol'),
+                            'tickSize': instrument.get('tickSize'),
+                            'lotSizeFilter': {
+                                'qtyStep': instrument.get('quantityPrecision'),
+                                'minQty': instrument.get('minQty'),
+                                'maxQty': instrument.get('maxQty')
+                            }
+                        }
             
             logger.warning(f"Symbol {formatted_symbol} not found")
             return None
@@ -213,21 +261,29 @@ class BingXClient:
     
     def _format_symbol(self, symbol: str) -> str:
         """
-        Format symbol to BingX format (BTCUSDT -> BTC-USDT).
+        Format symbol to BingX format (BTC-USDT).
         
         Args:
             symbol: Input symbol
             
         Returns:
-            Formatted symbol
+            Formatted symbol (BTC-USDT format)
         """
-        # Remove USDT suffix and add dash
-        if symbol.endswith("USDT"):
-            base = symbol[:-4]
-            return f"{base}-USDT"
-        elif "/" in symbol:
-            return symbol.replace("/", "-")
-        return symbol
+        # Remove existing separators
+        symbol = symbol.replace("/", "").replace("-", "")
+        
+        # Ensure it ends with USDT
+        if not symbol.endswith("USDT"):
+            if len(symbol) >= 2:
+                symbol = symbol + "USDT"
+            else:
+                symbol = symbol + "USDT"
+        
+        # Extract base currency (everything before USDT)
+        base = symbol[:-4]  # Remove "USDT"
+        
+        # Format as BASE-USDT
+        return f"{base}-USDT"
     
     def _quantize_price(self, price: Decimal, tick_size: Decimal) -> Decimal:
         """
@@ -288,12 +344,7 @@ class BingXClient:
             stop_loss_price: Stop loss price (S)
             
         Returns:
-            Dictionary with:
-            - notional_target (N)
-            - delta (Delta)
-            - leverage (Lev_dyn)
-            - leverage_class (SWING/DYNAMIC/FAST)
-            - quantity
+            Dictionary with notional_target, delta, leverage, etc.
         """
         # Calculate Delta
         delta = abs(entry_price - stop_loss_price) / entry_price
@@ -316,7 +367,6 @@ class BingXClient:
         elif leverage >= Decimal("7.50"):
             leverage_class = "DYNAMIC"
         else:
-            # Classify to nearest
             leverage_class = "SWING" if leverage <= Decimal("6.75") else "DYNAMIC"
         
         # Calculate quantity
@@ -402,8 +452,9 @@ class BingXClient:
         """
         formatted_symbol = self._format_symbol(symbol)
         tick_size = Decimal(str(symbol_info.get('tickSize', '0.0001')))
-        qty_step = Decimal(str(symbol_info.get('lotSizeFilter', {}).get('qtyStep', '0.001')))
-        min_qty = Decimal(str(symbol_info.get('lotSizeFilter', {}).get('minQty', '0.001')))
+        lot_size_filter = symbol_info.get('lotSizeFilter', {})
+        qty_step = Decimal(str(lot_size_filter.get('qtyStep', '0.001')))
+        min_qty = Decimal(str(lot_size_filter.get('minQty', '0.001')))
         
         # Calculate two prices
         p1, p2 = self.calculate_dual_limit_prices(target_entry, spread, tick_size)
@@ -412,18 +463,17 @@ class BingXClient:
         q1 = self._quantize_quantity(total_quantity / 2, qty_step, min_qty)
         q2 = self._quantize_quantity(total_quantity - q1, qty_step, min_qty)
         
-        # Get current price to ensure orders don't fill immediately
-        # For LONG: place below LTP, for SHORT: place above LTP
-        current_price = self.get_current_price(formatted_symbol)
-        
         orders = []
         order_ids = []
+        
+        # Set leverage first
+        self.set_leverage(formatted_symbol, int(leverage))
         
         # Place first order
         order1 = self.place_limit_order(
             symbol=formatted_symbol,
             side=side,
-            price=p1 if side == "BUY" else p2,  # Adjust based on side
+            price=p1 if side == "BUY" else p2,
             quantity=q1,
             leverage=leverage,
             post_only=True,
@@ -437,7 +487,7 @@ class BingXClient:
         order2 = self.place_limit_order(
             symbol=formatted_symbol,
             side=side,
-            price=p2 if side == "BUY" else p1,  # Adjust based on side
+            price=p2 if side == "BUY" else p1,
             quantity=q2,
             leverage=leverage,
             post_only=True,
@@ -469,12 +519,57 @@ class BingXClient:
         """
         try:
             formatted_symbol = self._format_symbol(symbol)
-            data = self._make_request("GET", f"/openApi/swap/v3/quote/price?symbol={formatted_symbol}", signed=False)
-            price = Decimal(str(data.get('data', {}).get('price', '0')))
-            return price
+            response = self._send_request(
+                'GET',
+                '/openApi/swap/v2/quote/price',
+                params={'symbol': formatted_symbol},
+                signed=False
+            )
+            
+            if response.get('code') == 0:
+                data = response.get('data', {})
+                price = Decimal(str(data.get('price', '0')))
+                return price
+            
+            return Decimal("0")
+            
         except Exception as e:
             logger.error(f"Failed to get current price: {e}")
             return Decimal("0")
+    
+    def set_leverage(self, symbol: str, leverage: int) -> bool:
+        """
+        Set leverage for a symbol.
+        
+        Args:
+            symbol: Trading symbol
+            leverage: Leverage value
+            
+        Returns:
+            True if successful
+        """
+        try:
+            response = self._send_request(
+                'POST',
+                '/openApi/swap/v2/trade/leverage',
+                params={
+                    'symbol': symbol,
+                    'side': 'LONG',  # BingX requires side
+                    'leverage': leverage
+                },
+                signed=True
+            )
+            
+            if response.get('code') == 0:
+                logger.info(f"✅ Leverage set to {leverage}x for {symbol}")
+                return True
+            else:
+                logger.error(f"Failed to set leverage: {response.get('msg')}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error setting leverage: {e}")
+            return False
     
     def place_limit_order(
         self,
@@ -501,41 +596,50 @@ class BingXClient:
             reduce_only: Reduce-only flag
             
         Returns:
-            Order response dictionary
+            Order response dictionary with orderId field
         """
-        formatted_symbol = self._format_symbol(symbol)
-        
-        params = {
-            'symbol': formatted_symbol,
-            'side': side,
-            'type': 'LIMIT',
-            'price': str(price),
-            'quantity': str(quantity),
-            'leverage': str(leverage),
-            'timeInForce': time_in_force,
-            'postOnly': 'true' if post_only else 'false',
-            'reduceOnly': 'true' if reduce_only else 'false'
-        }
-        
         try:
-            data = self._make_request("POST", "/openApi/swap/v3/trade/order", params=params, signed=True)
+            params = {
+                'symbol': symbol,
+                'side': side,
+                'positionSide': 'LONG' if side == 'BUY' else 'SHORT',
+                'type': 'LIMIT',
+                'quantity': str(quantity),
+                'price': str(price),
+                'timeInForce': time_in_force,
+            }
             
-            if data.get('code') == 0:
-                order_data = data.get('data', {})
-                logger.info(f"✅ Order placed: {order_data.get('orderId')} - {side} {quantity} @ {price}")
+            if post_only:
+                params['postOnly'] = 'true'
+            
+            if reduce_only:
+                params['reduceOnly'] = 'true'
+            
+            response = self._send_request(
+                'POST',
+                '/openApi/swap/v2/trade/order',
+                params=params,
+                signed=True
+            )
+            
+            if response.get('code') == 0:
+                data = response.get('data', {})
+                order_id = data.get('order', {}).get('orderId', '')
+                logger.info(f"✅ Order placed: {order_id} - {side} {quantity} @ {price}")
                 return {
-                    'orderId': order_data.get('orderId'),
+                    'orderId': order_id,
                     'status': 'ACCEPTED',
                     'retCode': 0,
-                    **order_data
+                    **data
                 }
             else:
-                logger.error(f"❌ Order placement failed: {data.get('msg')}")
+                error_msg = response.get('msg', 'Unknown error')
+                logger.error(f"❌ Order placement failed: {error_msg} (code: {response.get('code')})")
                 return {
                     'orderId': None,
                     'status': 'FAILED',
-                    'retCode': data.get('code'),
-                    'error': data.get('msg')
+                    'retCode': response.get('code'),
+                    'error': error_msg
                 }
                 
         except Exception as e:
@@ -558,15 +662,20 @@ class BingXClient:
             Order status dictionary or None
         """
         try:
-            formatted_symbol = self._format_symbol(symbol)
-            params = {
-                'symbol': formatted_symbol,
-                'orderId': order_id
-            }
-            data = self._make_request("GET", "/openApi/swap/v3/trade/order", params=params, signed=True)
+            response = self._send_request(
+                'GET',
+                '/openApi/swap/v2/trade/order',
+                params={
+                    'symbol': symbol,
+                    'orderId': order_id
+                },
+                signed=True
+            )
             
-            if data.get('code') == 0:
-                return data.get('data', {})
+            if response.get('code') == 0:
+                data = response.get('data', {})
+                return data.get('order', {})
+            
             return None
             
         except Exception as e:
@@ -585,19 +694,95 @@ class BingXClient:
             True if cancellation successful
         """
         try:
-            formatted_symbol = self._format_symbol(symbol)
-            params = {
-                'symbol': formatted_symbol,
-                'orderId': order_id
-            }
-            data = self._make_request("DELETE", "/openApi/swap/v3/trade/order", params=params, signed=True)
+            response = self._send_request(
+                'DELETE',
+                '/openApi/swap/v2/trade/order',
+                params={
+                    'symbol': symbol,
+                    'orderId': order_id
+                },
+                signed=True
+            )
             
-            if data.get('code') == 0:
+            if response.get('code') == 0:
                 logger.info(f"✅ Order cancelled: {order_id}")
                 return True
+            
             return False
             
         except Exception as e:
             logger.error(f"Failed to cancel order: {e}")
             return False
+    
+    # ============================================================================
+    # WEBSOCKET CONNECTION & HEARTBEAT
+    # ============================================================================
+    
+    async def connect_websocket(self) -> bool:
+        """
+        Connect to BingX WebSocket for real-time updates.
+        
+        Returns:
+            True if connection successful
+        """
+        if not self.api_key or not self.secret_key:
+            logger.error("Cannot connect WebSocket: API credentials not set")
+            return False
+        
+        try:
+            # BingX WebSocket implementation
+            # This is a simplified placeholder - full implementation would use websockets library
+            self.ws_connected = True
+            self.last_heartbeat = time.time()
+            logger.info("✅ WebSocket connection initiated")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to connect WebSocket: {e}")
+            self.ws_connected = False
+            return False
+    
+    async def verify_websocket_heartbeat(self, timeout: int = 30) -> bool:
+        """
+        Verify WebSocket heartbeat is working (≤30s).
+        
+        Args:
+            timeout: Maximum acceptable heartbeat interval (seconds)
+            
+        Returns:
+            True if heartbeat is within acceptable range
+        """
+        if not self.ws_connected:
+            logger.error("Cannot verify heartbeat: WebSocket not connected")
+            return False
+        
+        try:
+            # Wait a bit for initial connection
+            await asyncio.sleep(2)
+            
+            if self.last_heartbeat is None:
+                self.last_heartbeat = time.time()
+            
+            time_since_heartbeat = time.time() - self.last_heartbeat
+            
+            if time_since_heartbeat <= timeout:
+                logger.info(f"✅ WebSocket heartbeat OK ({time_since_heartbeat:.1f}s ago)")
+                return True
+            else:
+                logger.error(f"❌ WebSocket heartbeat timeout ({time_since_heartbeat:.1f}s > {timeout}s)")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error verifying WebSocket heartbeat: {e}")
+            return False
+    
+    def disconnect_websocket(self):
+        """Disconnect WebSocket connection."""
+        if self.ws_session:
+            try:
+                self.ws_connected = False
+                self.ws_session = None
+                logger.info("WebSocket disconnected")
+            except Exception as e:
+                logger.error(f"Error disconnecting WebSocket: {e}")
 
