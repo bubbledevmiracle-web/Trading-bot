@@ -36,6 +36,8 @@ from pyrogram.types import Message
 # Import configuration and startup checker
 import config
 from startup_checker import StartupChecker
+from ssot_store import SignalStore
+from stage1_processor import Stage1SignalProcessor
 
 # ============================================================================
 # LOGGING SETUP
@@ -57,53 +59,10 @@ logging.getLogger("pyrogram.dispatcher").setLevel(logging.CRITICAL)
 logging.getLogger("asyncio").setLevel(logging.CRITICAL)
 
 # ============================================================================
-# SIGNAL EXTRACTION LOGGER
+# DUPLICATE DETECTION (REMOVED)
 # ============================================================================
-
-# Create separate logger for extracted signals
-signal_logger = logging.getLogger("signal_extractor")
-signal_logger.setLevel(logging.INFO)
-signal_handler = logging.FileHandler(config.EXTRACT_SIGNALS_LOG, encoding='utf-8')
-signal_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-signal_logger.addHandler(signal_handler)
-
-# ============================================================================
-# DUPLICATE DETECTION
-# ============================================================================
-
-class DuplicateTracker:
-    """Track processed messages to prevent duplicates."""
-    
-    def __init__(self, ttl_hours: int = 2):
-        self.ttl_hours = ttl_hours
-        self.processed_messages: Dict[str, datetime] = {}
-    
-    def _calculate_hash(self, channel_id: str, message_id: int, text: str) -> str:
-        """Calculate hash for message duplicate detection."""
-        content = f"{channel_id}:{message_id}:{text[:100]}"
-        return hashlib.md5(content.encode('utf-8')).hexdigest()
-    
-    def is_duplicate(self, channel_id: str, message_id: int, text: str) -> bool:
-        """Check if message is duplicate."""
-        msg_hash = self._calculate_hash(channel_id, message_id, text)
-        now = datetime.now()
-        
-        # Clean old entries
-        self.processed_messages = {
-            k: v for k, v in self.processed_messages.items()
-            if now - v < timedelta(hours=self.ttl_hours)
-        }
-        
-        if msg_hash in self.processed_messages:
-            logger.debug(f"Duplicate detected: {msg_hash}")
-            return True
-        
-        # Mark as processed
-        self.processed_messages[msg_hash] = now
-        return False
-
-# Global duplicate tracker
-duplicate_tracker = DuplicateTracker(ttl_hours=config.DUPLICATE_TTL_HOURS)
+# Duplicate prevention is now handled by the persistent SSoT store via a UNIQUE
+# constraint on (chat_id, message_id). This is restart-safe and idempotent.
 
 # ============================================================================
 # SIGNAL DETECTION ALGORITHM (from original main.py)
@@ -120,6 +79,11 @@ def should_exclude_message(text: str) -> bool:
         return True
     
     exclusion_patterns = [
+        r"\bpartial\s+close\b",
+        r"\bpartial\s+take[- ]?profit\b",
+        r"\bfirst\s+target\s+reached\b",
+        r"\btarget\s+reached\b",
+        r"\bp&l\s*:\s*[\d.]+%\b",
         r"all\s+(entry\s+)?targets?\s+achieved",
         r"all\s+take[- ]?profit\s+targets?\s+achieved",
         r"(entry|take[- ]?profit)\s+targets?\s+achieved",
@@ -202,9 +166,14 @@ def detect_trading_data(text: str) -> Dict:
     
     # Entry patterns
     entry_patterns = [
-        r'Entry\s*(?:zone|Price|Targets?|Orders?)?\s*[:\-]?\s*\$?[\d.]+',
+        r'(?:➡️\s*)?Entry\s*(?:zone|Price|Targets?|Orders?)?\s*[:\-]?\s*\$?[\d.]+',
         r'Entry\s*[:\-]\s*\$?[\d.]+',
         r'Entries?\s*[:\-]?\s*\$?[\d.]+',
+        # Common variants where Buy/Sell acts as entry label
+        r'\bBuy\b\s*[:\-]?\s*\$?[\d.]+',
+        r'\bSell\b\s*[:\-]?\s*\$?[\d.]+',
+        # Multiline: "Entry :" followed by numbered lines
+        r'Entry\s*:\s*(?:\s*\n\s*)*\d+[)\-]?\s*\$?[\d.]+',
     ]
     
     for pattern in entry_patterns:
@@ -215,10 +184,10 @@ def detect_trading_data(text: str) -> Dict:
     
     # Target patterns
     target_patterns = [
-        r'Target\s*\d*[:\-]?\s*\$?[\d.]+',
-        r'Targets?\s*[:\-]?\s*\$?[\d.]+',
-        r'Take[- ]?Profit\s*(?:Targets?)?',
-        r'\bTP\d*\b',
+        # Require an actual price near TP/Target, to avoid "TP1 reached" updates
+        r'(?:TP|Target)\s*\d*[:\-]?\s*\$?[\d.]+',
+        # Multiline: "Targets:" followed by numbered/emoji-numbered lines with prices
+        r'Targets?\s*:\s*(?:[\s\S]{0,120})\b\d+[)\-]\s*\$?[\d.]+',
     ]
     
     for pattern in target_patterns:
@@ -229,9 +198,10 @@ def detect_trading_data(text: str) -> Dict:
     
     # Stop Loss patterns
     sl_patterns = [
-        r'Stop[- ]?Loss',
-        r'\bSL\b(?!\w)',
-        r'\bSTOP\b(?!\w)',
+        # Require a price near SL/Stop Loss, to avoid "move stop loss..." updates
+        r'Stop[- ]?Loss\s*[:\-]?\s*\$?[\d.]+',
+        r'\bSL\b\s*[:\-]?\s*\$?[\d.]+',
+        r'\bSTOP\b\s*[:\-]?\s*\$?[\d.]+',
     ]
     
     for pattern in sl_patterns:
@@ -259,26 +229,23 @@ def validate_signal(text: str, symbol_found: bool, direction_found: bool, tradin
     score += 3  # Direction found
     reasons.append("has_direction")
     
-    if trading_data['has_entry']:
-        score += 3
-        reasons.append("has_entry")
-    
-    if trading_data['has_targets']:
-        score += 2
-        reasons.append("has_targets")
-    
+    # To avoid false positives (e.g. "Partial Close", "TP1 reached", "move stop loss"),
+    # require Entry + at least one TP price. SL is optional (FAST fallback exists).
+    if not trading_data['has_entry']:
+        return False, score, "Missing entry"
+    score += 3
+    reasons.append("has_entry")
+
+    if not trading_data['has_targets']:
+        return False, score, "Missing targets"
+    score += 2
+    reasons.append("has_targets")
+
     if trading_data['has_stop_loss']:
         score += 2
         reasons.append("has_stop_loss")
-    
-    has_trading_data = trading_data['has_entry'] or trading_data['has_targets'] or trading_data['has_stop_loss']
-    if not has_trading_data:
-        return False, score, "Missing trading data (Entry/TP/SL)"
-    
-    if score >= 3:
-        return True, score, f"Signal detected ({', '.join(reasons)})"
-    else:
-        return False, score, "Insufficient signal components"
+
+    return True, score, f"Signal detected ({', '.join(reasons)})"
 
 def is_trading_signal(message_text: str) -> Tuple[bool, str]:
     """Main algorithm: Determine if message is a trading signal."""
@@ -316,12 +283,26 @@ class TelegramForwarder:
         self.source_channels = config.SOURCE_CHANNELS
         self.startup_checker = None
         self.stage0_passed = False
+
+        # Persistent internal Signal Store (SSoT)
+        self.ssot_store: Optional[SignalStore] = None
+        self.stage1: Optional[Stage1SignalProcessor] = None
     
     async def start(self):
         """Start the Telegram client and run Stage 0 checks."""
         logger.info("Starting Telegram client...")
         await self.app.start()
         logger.info("✅ Telegram client started successfully")
+
+        # Initialize SSoT store (SQLite) early so ingestion can persist immediately
+        if config.SSOT_ENABLE:
+            self.ssot_store = SignalStore(
+                config.SSOT_DB_PATH,
+                enable_wal=config.SSOT_SQLITE_WAL,
+                busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
+            )
+            logger.info(f"✅ SSoT SQLite ready: {config.SSOT_DB_PATH}")
+            self.stage1 = Stage1SignalProcessor(self.ssot_store)
         
         # ====================================================================
         # STAGE 0 - INITIALIZATION & SAFETY
@@ -348,7 +329,7 @@ class TelegramForwarder:
         logger.info("\n" + "="*60)
         logger.info("🚀 Bot is running and monitoring channels...")
         logger.info(f"📊 Mode: {'DEMO (Extract Only)' if config.DEMO_MODE else 'PRODUCTION'}")
-        logger.info(f"📂 Signal Log: {config.EXTRACT_SIGNALS_LOG}")
+        logger.info(f"📂 SSoT DB: {config.SSOT_DB_PATH if config.SSOT_ENABLE else 'DISABLED'}")
         logger.info("="*60 + "\n")
         
         return True
@@ -357,6 +338,10 @@ class TelegramForwarder:
         """Stop the Telegram client."""
         logger.info("Stopping Telegram client...")
         await self.app.stop()
+        if self.ssot_store is not None:
+            self.ssot_store.close()
+            self.ssot_store = None
+            self.stage1 = None
         logger.info("✅ Telegram client stopped")
     
     async def handle_new_message(self, client: Client, message: Message):
@@ -401,27 +386,77 @@ class TelegramForwarder:
             
             logger.info(f"✅ Signal detected from {channel_name}: {signal_reason}")
             
-            # Check for duplicates
-            if duplicate_tracker.is_duplicate(chat_id, message.id, message_text):
-                logger.debug(f"Duplicate signal from {channel_name}, skipping")
+            # Stage 1 – Signal Ingestion & Normalization
+            # Receive -> Validate -> Normalize -> Deduplicate -> Accepted? -> Add to SSoT Queue
+            if not config.SSOT_ENABLE or self.ssot_store is None or self.stage1 is None:
+                logger.error("❌ SSoT is disabled or not initialized - cannot process Stage 1")
                 return
-            
-            # Log extracted signal to file
-            signal_logger.info(f"\n{'='*80}")
-            signal_logger.info(f"SIGNAL EXTRACTED")
-            signal_logger.info(f"Channel: {channel_name}")
-            signal_logger.info(f"Message ID: {message.id}")
-            signal_logger.info(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            signal_logger.info(f"Reason: {signal_reason}")
-            signal_logger.info(f"{'='*80}")
-            signal_logger.info(f"{message_text}")
-            signal_logger.info(f"{'='*80}\n")
-            
-            logger.info(f"📝 Signal logged to: {config.EXTRACT_SIGNALS_LOG}")
-            
-            # During testing phase, we only extract and log signals
-            # We do NOT forward to private channel or place trades
-            # This allows signal processing logic to be verified first
+
+            msg_dt = getattr(message, "date", None)
+
+            # Log raw extracted data BEFORE processing (traceability)
+            logger.info("\n" + "=" * 80)
+            logger.info("STAGE 1 - RAW SIGNAL (PRE-PROCESS)")
+            logger.info(f"Channel: {channel_name}")
+            logger.info(f"Chat ID: {chat_id}")
+            logger.info(f"Message ID: {message.id}")
+            logger.info(f"Message Date: {msg_dt.isoformat() if msg_dt else None}")
+            logger.info(f"Reason: {signal_reason}")
+            logger.info("-" * 80)
+            logger.info(message_text.strip())
+            logger.info("=" * 80)
+
+            decision = self.stage1.process(
+                channel_name=channel_name,
+                chat_id=chat_id,
+                message_id=message.id,
+                message_dt=msg_dt,
+                raw_text=message_text,
+            )
+
+            if decision.status == "ACCEPTED":
+                logger.info(f"✅ Stage 1 ACCEPTED -> stored in SSoT queue (ssot_id={decision.stored_signal_id})")
+            elif decision.status == "BLOCKED":
+                logger.warning(f"⛔ SIGNAL BLOCKERAD: {decision.reason}")
+                try:
+                    dedup = (decision.details or {}).get("dedup", {})
+                    norm = (decision.details or {}).get("normalized", {})
+                    ttl = getattr(config, "DUPLICATE_TTL_HOURS", 2)
+                    min_diff = dedup.get("min_diff")
+                    await self.app.send_message(
+                        chat_id=config.PERSONAL_CHANNEL_ID,
+                        text=(
+                            "SIGNAL BLOCKERAD\n"
+                            f"Orsak: {decision.reason}\n"
+                            f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                            f"Gäller i: {ttl} h\n"
+                            f"Avvikelse (min): {min_diff}\n"
+                            f"Källa: {channel_name}\n"
+                            f"Symbol: {norm.get('symbol')}\n"
+                            f"Side: {norm.get('side')}\n"
+                            f"Entry: {norm.get('entry_price')}\n"
+                            f"SL: {norm.get('sl_price')}\n"
+                            f"TP: {norm.get('tp_prices')}\n"
+                            f"Message ID: {message.id}\n"
+                        ),
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send SIGNAL BLOCKERAD notification: {e}")
+            else:
+                logger.warning(f"❌ SIGNAL OGILTIG: {decision.reason}")
+                try:
+                    await self.app.send_message(
+                        chat_id=config.PERSONAL_CHANNEL_ID,
+                        text=(
+                            "SIGNAL OGILTIG\n"
+                            f"Orsak: {decision.reason}\n"
+                            f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                            f"Källa: {channel_name}\n"
+                            f"Message ID: {message.id}\n"
+                        ),
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send SIGNAL OGILTIG notification: {e}")
             
         except Exception as e:
             logger.error(f"❌ Error handling message: {e}", exc_info=True)
@@ -474,6 +509,8 @@ async def main():
     logger.info(f"Trading Enabled: {config.ENABLE_TRADING}")
     logger.info(f"Dry Run: {config.DRY_RUN}")
     logger.info(f"Extract Signals Only: {config.EXTRACT_SIGNALS_ONLY}")
+    logger.info(f"SSoT Enabled: {config.SSOT_ENABLE}")
+    logger.info(f"SSoT DB Path: {config.SSOT_DB_PATH}")
     logger.info("="*60)
     
     forwarder = TelegramForwarder()

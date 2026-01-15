@@ -1,0 +1,595 @@
+Vad min bot ska göra 2025-09-07
+
+📌 Din Bots Funktioner och Fullständig Specifikation
+Detta är minimikraven. Nya funktioner som införs ska uppdateras här och aldrig tas bort ur botens funktioner eller dokumentation.
+
+📨 Signalhantering
+
+Botten tar emot endast Telegram-signaler som innehåller: entry, TP och SL.
+
+Stöd för alla symbolformat:– Alla USDT-par (t.ex. BTCUSDT, ETHUSDT).– Även USD-par och namnformat (t.ex. Bitcoin, BTC/USDT).
+
+Universell signalnormering (ingen whitelist)
+Alla inkommande signaler – oavsett källa/etikett (DCA, scale-in, add-on, ladder, grid, martingale, trailing-TP/SL m.fl.) – mappas deterministiskt till kärnfält {entry, TP[], SL, typ} enligt mall.– Add-entry/DCA → ENTRY (eller ENTRY n i dual-limit-plan).– Partial-TP/scale-out → TPn med explicit kvantitet/andel.– Move-to-BE/trailing → BREAK_EVEN_UPDATE/TRAILING_UPDATE relativt original-ENTRY.– Saknas SL i källan → auto-SL = −2,00 % från entry och FAST x10,00 (se § Hävstång).
+
+Normalisering av data (obligatoriskt)
+Riktning (LONG/SHORT), tick size och qty step MÅSTE normaliseras mot instrumentets specifikation innan orderläggning. Alla priser och kvantiteter kvantiseras till symbolens tick size respektive qty step.
+
+Dupliceringsspärr
+– Om inkommande signal är i princip identisk (entry/TP/SL diff ≤ 5 %) mot en aktiv/nyligen mottagen → blockera i 2 timmar.– Om diff ≥ 10 % → acceptera alltid.– Om diff i (5–10 %) → accepteras eller blockeras deterministiskt enligt fast regel (ingen heuristik).– Motsatt riktning (LONG/SHORT) → accepteras alltid.
+Deduplicering (metodkrav): Utöver tröskelreglerna ska duplicering upptäckas via HASH + tidsfönster (TTL). HASH beräknas deterministiskt på {källa, symbol, side, entry, TP[], SL}. TTL = 2 timmar (konfigurerbar).
+
+📈 Dual-Limit Entry & Sammanslagning (OBLIGATORISKT)
+Syfte: Alltid två post-only GTC-limitordrar som ligger kvar oavsett aktuellt pris, inväntar träff och slås samman till en position där genomsnittlig entry = mittpunkten.
+
+Mål-entry och spridningDefiniera mål-entry Em och halvspridning Δ (pris, procent eller ticks).Beräkna två tick-kvantiserade priser:P1 = quantize(Em − Δ)P2 = quantize(Em + Δ)
+
+Placering (side-beroende)– LONG: lägg båda limit buy under LTP så att de inte fyller direkt.– SHORT: lägg båda limit sell över LTP.
+
+KvantitetTotal planerad kvantitet Q delas 50/50: q1 = Q/2, q2 = Q − q1 (justera till minQty/qtyStep).
+
+OrderläggningLägg två limitordrar med timeInForce = GTC, postOnly = true, reduceOnly = false.Spara respektive orderId. Inget Telegram-meddelande skickas här.
+
+Sammanslagning vid första fillVid första fill (helt/delvis) hålls ackumulerad fill f och pris-summa Σ(fill_qty * fill_price).För att garantera slutligt snitt = Em för total Q, räkna ut ersättningspris för resterande Q − f:pr = quantize((Em*Q − Σ(fill_qty*fill_price)) / (Q − f))Avbryt den andra ursprungsordern (om öppen) och lägg en ny post-only GTC-limit på pr för Q − f.Om båda ursprungsordrar delvis fyllt används totalsummor; lägg ersättningsorder endast om f < Q.
+
+Precision & maker-skyddPris kvantiseras till symbolens tick size. Kvantitet kvantiseras till qty step.postOnly får inte brytas; justera pris 1 tick från spreaden vid behov.
+
+🧮 Dynamisk hävstång (ENTYDIG FORMEL)
+DefinitionerB = kontosaldo (USDT), r = risk per trade (andel),E = entry-pris, S = stop-loss-pris,Delta = abs(E − S) / E,IM_plan = planerad initial IM (USDT) för öppningsordern.
+BeräkningarN = (r * B) / DeltaLev_dyn = round(min(max(N / IM_plan, 1), 50), 2)
+Klassning & format
+
+SWING: Lev ≤ 6,00× → klassas och publiceras som SWING.
+
+DYNAMISK: Lev ≥ 7,50× → klassas och publiceras som DYNAMISK.
+
+Mellanområde: Lev i (6,00×; 7,50×) → klassas till närmsta av SWING/DYNAMISK.
+
+Fallback: saknas SL i källan → FAST med SL = −2,00 % från entry och x10,00 hävstång.
+
+Formatering: hävstång visas alltid med två decimaler (xNN.NN). Procenttal visas med två decimaler (t.ex. −2,00 %).
+
+🔄 End-to-end-flöde & kvittenspolicy (Bybit först)
+Kedja
+
+Ingest från källgrupp → Parser/Normalisering → Validering → Mallbyggare.
+
+Orderläggning mot Bybit (POST) enligt mall.
+
+Vänta på kvittens från Bybit (API/WS) för varje steg:– ORDER_ACCEPTED: retCode = 0 och giltiga order-/position-ID.– TP_SL_SET: samtliga TP/SL-order bekräftade.– POSITION_OPENED: verifierad fill (executedQty > 0) eller WS-event.
+
+Telegram-publicering sker endast efter bekräftelse i respektive steg.
+
+Livscykeluppdateringar (BE-flytt, trailing, partial fills, stängning via TP/SL) följer samma Bybit-först-princip.
+
+Avslut: slutmeddelande när position stängts helt, inklusive PnL-summering och relevanta ID.
+Tvingande mallheader (överst i samtliga mallar)SÄNDS ENDAST EFTER BYBIT-BEKRÄFTELSE (retCode=0/fills).Varje fält i meddelandet fylls från Bybit-kvittens eller beräkning som refereras av Bybit-data. Ingen antagandepublicering.
+
+🧾 Obligatoriska fält i alla mallar (SSoT = Bybit)
+Identitet & spårbarhetbot_order_id, bybit_order_id (när tillgänglig), position_id (om tillämpligt),source_channel_name, signal_message_id, parsed_at, sent_at, env (prod/stage).
+Handelsdatasymbol, side, entry_price, sl_price,tp_list[] (pris, % från entry, kvantitet/andel),leverage_class ∈ {SWING, DYNAMISK, FAST}, leverage_value (två decimaler),order_type, time_in_force, post_only, reduce_only, margin_mode,risk_percent (= r), wallet_balance_snapshot (= B), im_plan (= IM_plan),delta (= Delta), notional_target (= N).
+Kvittensflaggor (sätts av kvittens, aldrig antaganden)order_accepted, tp_sl_set, position_opened, position_closed,be_moved, trailing_active (om tillämpligt).
+
+✅ Validering före sändning (HÅRDA KRAV)
+Får inte publiceras till Telegram om något av följande gäller:
+
+SL saknas och FAST-fallback (−2,00 %, x10,00) inte tillämpats.
+
+Hävstång utan två decimaler eller utanför [1, 50] efter klampning.
+
+TP-lista fel: prisordning, procentmärkning, kvantiteter/andelar.
+
+risk_percent, wallet_balance_snapshot, im_plan, delta saknas eller = 0.
+
+Summa TP-kvantiteter överstiger planerad positionsstorlek.
+
+reduce_only/post_only inkonsistenta med ordertyp.
+
+Tick size/qty-precision bryter mot instrumentregler.
+
+TP/SL ej exakt enligt signal (förutom vid auto-SL-fallback) → STOPPA publicering.
+
+Exitorder utan reduce_only = true → STOPPA publicering.
+
+🧮 Beräknings- och formateringspolicy (PRECIS)
+
+Hävstång: enligt formeln; klampas [1, 50]; avrundas HALF-UP till 2 decimaler; visas xNN.NN.
+
+Procent: alltid två decimaler och % (t.ex. +2,98 %).
+
+Pris: kvantiseras till Bybits tick size före sändning och vid varje uppdatering.
+
+Kvantiteter: kvantiseras till instrumentets min/step.
+
+Valuta: interna beräkningar i USDT (om inget annat anges).
+
+🧰 Konflikt- och fallbackregler (DETERMINISTISKT)
+
+Saknas SL → FAST-fallback (SL −2,00 %, x10,00).
+
+Lev i (6,00×; 7,50×) → klassas till närmsta klass.
+
+Om Bybit returnerar avvikande värden (t.ex. justerad kvantitet/hävstång) → uppdatera interna fält och mall innan publicering.
+
+🛰️ Telemetri & revisionsspår
+
+Logga alla inkommande signaler, normaliserat utfall, beräknings-input/output (B, r, IM_plan, Delta, N, hävstång), API-payloads till Bybit, råa API-svar, WS-event, tidsstämplar och alla publicerade Telegram-meddelanden.
+
+Alla loggar måste korrelera bot_order_id ↔ bybit_order_id/position_id.
+
+📣 Telegram-rapportering
+
+Löpande meddelanden för alla händelser: signal, order, entry, TP, SL, hedge, pyramid, trailing, re-entry.
+
+Daglig rapport: totalt antal trades, winrate, PnL, antal re-entries/hedges/pyramidnivåer.
+
+Veckorapport: som ovan + topplista över mest lönsamma symboler.
+
+Driftmeddelande var 30:e minut: bekräftar att boten är online och visar korrekt tid/uptime.
+
+📡 Telegram-flöde (inkoppling & uppstart)
+Källor Whitelist: “Allatelegram  källor i ALL_PARAMETERS” ingår i SSoT, inga externa källor. MÅSTE vara whitelistrade och ingå i vår SSoT (Single Source of Truth).
+Vid uppkoppling (obligatorisk utskrift – ”grön bock”):Vid start/återstart ska boten omedelbart skriva ut till privat kanal, med Bybit/Telegram-bekräftelse per rad (✅):– Plånbokssaldo (baseline): 402.10 USDT (SSoT) ✅– Riskinställningar (t.ex. 2 % per trade) ✅– Strategier som är aktiva ✅– Aktiva positioner & öppna ordrar (sammanfattning) ✅All data MÅSTE vara bekräftad mot Bybit (API/WS) och käll-Telegram. Inga antaganden får publiceras.
+Vidaresändning till privat kanal:Alla godkända och normaliserade signaler skickas till privat kanal i standardformat (mallad). Publicering sker endast efter Bybit-bekräftelse enligt kvittenspolicyn.
+Felaktiga signaler:Felaktiga/inkompletta signaler skickas råa till privat kanal med tydlig felmarkering (orsak och vilka fält som fallerat).
+
+⚙️ Driftsäkerhet
+
+Standardiserade felmeddelanden (varning/kritiskt).
+
+Snabb exekvering utan brus.
+
+Minnessanering: ta bort signaler som inte går igenom inom normal tid; rensa ordrar som inte blir positioner.
+
+Fail-safe: vid avbrott (internet, API-fel, bot-hängning) återupptas aktiva positioner och SL/TP; automatisk reconnect; saldo-/positionsverifiering vid återanslutning; spärr mot orderloopar.
+Order-städning (timeouts):Ej fyllda ordrar ska städas idempotent enligt följande timeouts:– 24h: korttimeout för hängande öppningsordrar och partiellt fyllda ordrar (re-query + cancel).– 6d: långtidsrensning av kvarvarande ordrar som inte resulterat i position.Dessa jobb MÅSTE vara persistenta och automatiskt återupptas efter omstart.
+
+📉 Stop Loss & Dynamik
+
+Alla SL-justeringar baseras på original-entry (inte justerad entry).
+
+Flytta SL till BE eller till TP1 → tolkas och utförs.
+
+Positionens storlek och SL beräknas dynamiskt utifrån B, r, IM_plan, E, S.
+
+När TP2 träffas → SL flyttas till BE + kostnad (0,0015 %).
+
+SL förflyttas därefter enligt fastställda pyramid- och **trailing-**regler.
+
+🔀 Pyramid- & hävstångsregler
+
+Alla pyramidnivåer räknas om från original-entry.
+
+Stege (exempel):+1,5 % → IM = 20 USDT+2,3 % → SL = BE + kostnad+2,4 % → hävstång upp till max (50×)+2,5 % → IM = 40 USDT+4 % → IM = 60 USDT+6 % → IM = 80 USDT+8,6 % → IM = 100 USDT
+
+Hävstångsklassificering:≤ 6× → SWING≥ 7,5× → DYNAMISK6–7,5× → klassas till närmaste enligt § Dynamisk hävstång.
+
+📊 Trailing Stop
+
+Vid +6,1 % orealiserad vinst aktiveras trailing stop.
+
+SL placeras 2,5 % bakom högsta priset (eller lägsta vid SHORT) och följer priset löpande.
+
+🔄 Hedge & Re-entry
+
+Om priset rör sig −2 % mot positionen: öppna hedge i motsatt riktning.– Storlek = 100 % av ursprunglig position.– TP = original-SL, SL = original-entry.
+
+Efter SL-träff: försök re-entry med dual-limit upp till 3 gånger; därefter stopp tills ny extern signal anländer.
+
+Hedge-positioner använder samma hävstång som originalpositionen.
+
+📋 Risk & Kapacitet
+
+Max 100 aktiva trades samtidigt.
+
+Ingen daglig/veckovis förlustspärr stoppar boten.
+
+Basparametrar (SSoT-baseline):– Konto: 402.10 USDT– Risk: 2 % per trade– Initial IM: 20 USDT per trade
+
+🔤 Terminologi (konsekvent)
+
+Använd konsekvent termen SSoT (Single Source of Truth) i hela dokumentet. Ersätt eventuella varianter (SSOT, SSoS, ssos) med SSoT (Single Source of Truth).
+
+Kontrollista – allt infört:✔ 3 whitelistrade källor i SSoT • ✔ Uppstartsutskrift med ”grön bock” och baseline 402.10 USDT • ✔ Normalisering LONG/SHORT + tick/step • ✔ Dedup: HASH + TTL 2h • ✔ Dual-Limit + sammanslagning • ✔ TP/SL exakt enligt signal (undantag auto-SL) • ✔ Exit = reduce_only=true • ✔ Valideringsbrytare för båda ovan • ✔ Timeouts 24h/6d, persistenta • ✔ Bybit-först och tvingande mallheader • ✔ Terminologi SSoT konsekvent.
+här).
+
+🗂️ A) Rätta din befintliga “Loggning”-sektion
+
+Vad som måste ändras
+
+Frasen “Telegram-notifieringar … skickas alltid” strider mot Bybit-först. Ska vara: skickas endast efter kvittens; felmeddelanden är egna notifieringar.
+
+Förtydliga tidsstämpelpolicy: UTC som standard, alternativ lokal tidszon (Europe/Stockholm) via konfig.
+
+Ersätt hela “Loggning” med:
+
+Loggning
+
+• Alla händelser på Bybit loggas:
+
+  – Orderplacering (request/payload)
+
+  – Orderaccept (retCode, orderId)
+
+  – Orderfill (WS/REST fills)
+
+  – SL/TP-trigger (skapande, uppdatering, fill)
+
+  – Felmeddelanden (klass: varning/kritiskt)
+
+  – Reconnects (WS/REST), backoff och återhämtning
+
+• Loggar sparas lokalt och är kompletta (förlustfria) samt korreleras via bot_order_id ↔ bybit_order_id/position_id.
+
+• Telegram-notifieringar följer standardiserade mallar och skickas ENDAST efter Bybit-kvittens (Bybit först). Felnotifieringar skickas separat.
+
+• Alla loggar och meddelanden tidsstämplas i UTC (standard). Lokal tidszon kan aktiveras via konfig (Europe/Stockholm).
+
+B) Lägg till under “📨 Signalhantering”
+
+1) Direkt efter första stycket (om att ta emot Telegram-signaler):
+
+Standardisering av utgående meddelanden
+
+Inga rå-forward från källkanaler. Alla meddelanden som skickas vidare till våra grupper MÅSTE skapas från våra standardiserade mallar och innehålla samtliga beräknade fält (ingen kopierad text).
+
+2) Efter symbolstödet (binder flöden till SSoT):
+
+Kategori & flöden (SSoT)
+
+Botens marknadsflöden är anslutna till Bybit v5 linear (USDT-perpetual) public-WS. Detta påverkar inte tolkningen av inkommande signalformat men styr tick/step-normalisering och instrumentspecifikationer.
+
+C) “📈 Entré & Orderläggning” – infoga bekräftelsekedja
+
+Placering: efter inledningen i avsnittet
+
+Bekräftelsekrav före publicering (Bybit först)
+
+– ORDER_PLACED publiceras ENDAST efter Bybit-svar med retCode=0 och giltigt orderId.
+
+– POSITION_OPENED publiceras ENDAST efter privat WS-event eller polling som bekräftar att positionen faktiskt är öppnad (executedQty > 0).
+
+– TP_SL_SET publiceras ENDAST efter bekräftelse på att samtliga TP/SL-order är skapade/uppdaterade.
+
+D) Ny rubrik: “📣 Telegrammallar (obligatoriska fält)”
+
+(Om du inte vill ha ny rubrik kan detta läggas i slutet av “📈 Entré & Orderläggning”.)
+
+📣 Telegrammallar (obligatoriska fält)
+
+Följande placeholders MÅSTE finnas och vara ifyllda vid publicering:
+
+{order_id}, {post_only}, {reduce_only}, {im_confirmed}, {source_channel_name}.
+
+{im_confirmed} hämtas uttryckligen från Bybit-respons/positionsdata (får EJ antas eller lokalt beräknas). Tomt/Null/None/"" är inte tillåtet.
+
+E) Ny rubrik: “🔐 Källor & Telegram-klient”
+
+Viktigt om konflikt: Tidigare beslut var ”Endast tre (3) källor”. Nedan låser vi exakt tre och namnger dem. (Ta bort alla formuleringar som antyder ”ytterligare källor kan förekomma”.)
+
+🔐 Källor & Telegram-klient
+
+• Telegram-klient: Endast Pyrogram får användas.
+
+• Källor (whitelist, SSoT): Endast tre (3) definierade källor bevakas och processas:
+
+  – CRYPTORAKETEN
+
+  – LUX_LEAK
+
+  – SMART_CRYPTO
+
+• Alla Telegram-parametrar för dessa källor (channel_id, title, username, invite_link m.fl.) MÅSTE vara whitelistrade i SSoT (Single Source of Truth).
+
+• Ändringar av källor kräver ägarens uttryckliga godkännande och SSoT-uppdatering i signerad release (se “🚦 Säker start / produktion”).
+
+F) Ny rubrik: “🧪 Dubblett- och variantkontroll”
+
+Här harmoniserar vi varianter: svensk standard SWING, DYNAMISK, FAST. (Om du har äldre text med DYNAMIC/FIXED: ersätt dem med DYNAMISK/FAST.)
+
+🧪 Dubblett- och variantkontroll
+
+• Signalvarianter (tillåtna): SWING, DYNAMISK, FAST. (Synonymer: DYNAMIC → DYNAMISK, FIXED → FAST.)
+
+• Andra varianter är inte tillåtna i mallar eller runtime.
+
+• Deduplicering: som i “Dupliceringsspärr” + HASH+TTL (2h) enligt SSoT.
+
+G) Ny rubrik: “🚦 Säker start / produktion”
+
+🚦 Säker start / produktion
+
+Bot får köras mot mainnet endast när en signerad release valideras med en governance-token (kontrolleras i driftkoden). I annat fall körs boten i demoläge. Denna regel är process- och säkerhetsrelaterad; inga API-nycklar eller hemligheter dokumenteras här.
+
+Sammanfattande check (Telegram-krav uppdaterade korrekt)
+
+✅ Bybit-först återspeglas i Loggning och Bekräftelsekrav före publicering.
+
+✅ Inga rå-forward: Standardisering av utgående meddelanden införd i Signalhantering.
+
+✅ Mallfält för Telegram (inkl. {im_confirmed} från Bybit) definierade.
+
+✅ Källa-whitelist: exakt 3 källor namngivna, Pyrogram-krav tydligt, kopplade till SSoT.
+
+✅ Varianter låsta: SWING, DYNAMISK, FAST (med synonym-mappning).
+
+✅ Flödesbindning till Bybit v5 linear i Signalhantering.
+
+✅ Governance-gate för produktion tillagd.
+
+Synkpunkter att spegla fullt ut i styrdokumenten
+
+Dual-Limit & Sammanslagning med Δ och pᵣ-formeln; postOnly=true, GTC, 50/50; maker-skydd (tick-justering) 
+Vad min bot ska göra 2025-09-07
+.
+
+Dynamisk hävstång (formeln, klampning, klassning SWING ≤ 6.00× / DYNAMISK ≥ 7.50× / FAST fallback vid saknat SL = −2.00 %, x10.00) 
+Vad min bot ska göra 2025-09-07
+.
+
+Bybit-först-flöde och tvingande mallheadern 
+Vad min bot ska göra 2025-09-07
+.
+
+Dedup HASH + TTL 2h utöver procenttrösklarna 
+Vad min bot ska göra 2025-09-07
+.
+
+Exits reduce_only=true och TP/SL exakt enligt signal (undantag: auto-SL fallback) 
+Vad min bot ska göra 2025-09-07
+.
+
+Timeouts 24h/6d för orderstädning (persistenta jobb) 
+Vad min bot ska göra 2025-09-07
+.
+
+Uppstart (grön bock) med baseline 402.10 USDT och Bybit/Telegram-kvittens per rad – ska återfinnas i Runbook och README (startsektion) 
+
+Tillägg som måste in i Word-dokumenten (för full spegling)
+Lägg in följande textavsnitt i ”Vad min bot ska göra” och vid behov i ”Telegram meddelamnde”:
+
+Pyrogram-exklusivitet”Telegram-klient: Endast Pyrogram används. Andra klienter (t.ex. Telethon) är förbjudna.”
+
+Dual-Limit & Merge (ersätter Above/Below)”Orderplan: Dual-Limit & sammanslagning (Δ-modell). Två Post-Only GTC-entry kring målnivå Eₘ ± Δ. Merge-on-first-fill säkrar slutligt avg_entry = Eₘ. Above/Below förekommer inte i systemet.”
+
+Startup-baseline + headerkrav”Startup-meddelande visar Balance baseline: 402.10 USDT (SSoT) ✅ och Cleanup-timeouts: 24h/6d. Alla driftmallar har topp-raden ’SÄNDS ENDAST EFTER BYBIT-BEKRÄFTELSE’.”
+
+TP/SL-exakthet”TP och SL sätts exakt enligt signal. Undantag: saknas SL i källan → auto-SL = −2,00 % och hävstång FAST x10,00.”
+
+DEMO-lås”Driftmiljö: Bybit DEMO endast. Alla REST/WS-endpoints är DEMO. (Production kräver separat governance-frigivning.)”
+
+Prestanda/”snabb bot””Krav: REST-latens ≤ 500 ms p95, WS-heartbeat ≤ 30 s, effektiv rate-limit-hantering, inga blockande proppar i huvudloopen. Avvikelse ⇒ drift blockeras tills åtgärdat.”
+
+Manuella kontroller”All verifiering i drift sker manuellt, steg för steg, med efterkontroll före nästa moment. Inga automatiserade tester i produktion.”
+
+Extra: saker som “ska in i Word” om de inte redan finns
+(De flesta finns redan, men lägg till om något saknas.)
+
+Presentation-standard för Telegram (svenska) – en normativ rad i Word om komma som decimal och mellanslag före % samt xNN,NN för hävstång. 
+Telegram meddelamnde
+
+Startvillkor i klartext: retCode=0, REST≤500 ms p95, WS≤30 s, can_send=true, governance OK, JSONL-loggning med message_text_hash och trace_id. (Det står i din engelska startmall; spegla på svenska i
+
+2) Vad min bot ska göra 2025-09-07.docx — OK, men förstärkningar
+Detta Word-dokument innehåller i princip alla krav vi baserar styrdokumenten på: Pyrogram-exklusivitet, 3 källor (whitelist/SSoT), Dual-Limit Δ-modellen, Dynamisk hävstång (Δ), Bybit-först + header, Dedup HASH+TTL 2h, reduce_only på exits, TP/SL exakt, timeouts 24h/6d, startup baseline 402,10 och prestandatrösklar + manuell kontroll.
+Rekommenderad minijustering (valfri tydliggörande):
+
+Lägg in en kort normrad för svenska Telegram-format (decimaltecken, mellanslag före %) direkt i avsnittet om mallar, så det inte kan misstolkas. (Det hänger redan i “Telegram meddelamnde”, men bra att spegla satsen här också.) 
+Telegram meddelamnde
+I övrigt: ingen ändring nödvändig; detta är käll-SSoT.
+ENGLISH+46
+703
+689310
+What my bot must do 2025-09-07
+📌 Your Bot’s Functions and Full Specification
+These are the minimum requirements. New features that are introduced must be updated here and must never be removed from the bot’s functions or documentation.
+📨 Signal Handling
+The bot receives only Telegram signals that contain: entry, TP and SL.
+Support for all symbol formats:– All USDT pairs (e.g. BTCUSDT, ETHUSDT).– Also USD pairs and name formats (e.g. Bitcoin, BTC/USDT).
+Universal signal normalization (no whitelist)
+All incoming signals – regardless of source/label (DCA, scale-in, add-on, ladder, grid, martingale, trailing-TP/SL etc.) – are deterministically mapped to the core fields {entry, TP[], SL, type} according to a template.– Add-entry/DCA → ENTRY (or ENTRY n in dual-limit plan).– Partial-TP/scale-out → TPn with explicit quantity/share.– Move-to-BE/trailing → BREAK_EVEN_UPDATE/TRAILING_UPDATE relative to the original ENTRY.– If SL is missing in the source → auto-SL = −2.00 % from entry and FAST x10.00 (see § Leverage).
+Data normalization (mandatory)
+Direction (LONG/SHORT), tick size and qty step MUST be normalized against the instrument specification before order placement. All prices and quantities are quantized to the symbol’s tick size and qty step respectively.
+Duplication guard
+– If the incoming signal is essentially identical (entry/TP/SL diff ≤ 5 %) to an active/recently received one → block for 2 hours.– If diff ≥ 10 % → always accept.– If diff in (5–10 %) → accepted or blocked deterministically according to fixed rule (no heuristics).– Opposite direction (LONG/SHORT) → always accepted.
+Deduplication (method requirement): In addition to the threshold rules, duplication must be detected via HASH + time window (TTL). HASH is calculated deterministically on {source, symbol, side, entry, TP[], SL}. TTL = 2 hours (configurable).
+📈 Dual-Limit Entry & Merging (MANDATORY)
+Purpose: Always two post-only GTC limit orders that remain regardless of current price, wait to be hit and are merged into one position where the average entry = the midpoint.
+Target entry and spreadDefine target entry Em and half-spread Δ (price, percent or ticks).Calculate two tick-quantized prices:P1 = quantize(Em − Δ)P2 = quantize(Em + Δ)
+Placement (side-dependent)– LONG: place both limit buys below LTP so that they do not fill immediately.– SHORT: place both limit sells above LTP.
+QuantityTotal planned quantity Q is split 50/50: q1 = Q/2, q2 = Q − q1 (adjust to minQty/qtyStep).
+Order placementPlace two limit orders with timeInForce = GTC, postOnly = true, reduceOnly = false.Save each orderId. No Telegram message is sent here.
+Merging on first fillOn first fill (full/partial) keep accumulated fill f and price-sum Σ(fill_qty * fill_price).To guarantee final average = Em for total Q, calculate replacement price for remaining Q − f:pr = quantize((EmQ − Σ(fill_qtyfill_price)) / (Q − f))Cancel the other original order (if open) and place a new post-only GTC limit at pr for Q − f.If both original orders have partially filled, use the total sums; place replacement order only if f < Q.
+Precision & maker protectionPrice is quantized to the symbol’s tick size. Quantity is quantized to qty step.postOnly must not be broken; adjust price 1 tick from the spread if needed.
+🧮 Dynamic Leverage (UNAMBIGUOUS FORMULA)
+DefinitionsB = account balance (USDT), r = risk per trade (fraction),E = entry price, S = stop-loss price,Delta = abs(E − S) / E,IM_plan = planned initial IM (USDT) for the opening order.
+CalculationsN = (r * B) / DeltaLev_dyn = round(min(max(N / IM_plan, 1), 50), 2)
+Classification & format
+SWING: Lev ≤ 6.00× → classified and published as SWING.
+DYNAMIC: Lev ≥ 7.50× → classified and published as DYNAMIC.
+Intermediate range: Lev in (6.00×; 7.50×) → classified to the nearest of SWING/DYNAMIC.
+Fallback: SL missing in source → FAST with SL = −2.00 % from entry and x10.00 leverage.
+Formatting: leverage is always shown with two decimals (xNN.NN). Percent values are shown with two decimals (e.g. −2.00 %).
+🔄 End-to-end Flow & Acknowledgement Policy (Bybit first)
+Chain
+Ingest from source group → Parser/Normalization → Validation → Template builder.
+Order placement to Bybit (POST) according to template.
+Wait for acknowledgement from Bybit (API/WS) for every step:– ORDER_ACCEPTED: retCode = 0 and valid order/position IDs.– TP_SL_SET: all TP/SL orders confirmed.– POSITION_OPENED: verified fill (executedQty > 0) or WS event.
+Telegram publishing takes place only after confirmation in the respective step.
+Lifecycle updates (BE move, trailing, partial fills, closing via TP/SL) follow the same Bybit-first principle.
+Closing: final message when position has been fully closed, including PnL summary and relevant IDs.
+Mandatory template header (at the top of all templates)SENT ONLY AFTER BYBIT CONFIRMATION (retCode=0/fills).Each field in the message is populated from Bybit acknowledgement or calculation that is referenced by Bybit data. No assumption-based publishing.
+🧾 Mandatory Fields in All Templates (SSoT = Bybit)
+Identity & traceabilitybot_order_id, bybit_order_id (when available), position_id (when applicable),source_channel_name, signal_message_id, parsed_at, sent_at, env (prod/stage).
+Trading datasymbol, side, entry_price, sl_price,tp_list[] (price, % from entry, quantity/share),leverage_class ∈ {SWING, DYNAMIC, FAST}, leverage_value (two decimals),order_type, time_in_force, post_only, reduce_only, margin_mode,risk_percent (= r), wallet_balance_snapshot (= B), im_plan (= IM_plan),delta (= Delta), notional_target (= N).
+Acknowledgement flags (set by acknowledgement, never assumptions)order_accepted, tp_sl_set, position_opened, position_closed,be_moved, trailing_active (when applicable).
+✅ Validation Before Sending (HARD REQUIREMENTS)
+Must not be published to Telegram if any of the following applies:
+SL is missing and FAST fallback (−2.00 %, x10.00) has not been applied.
+Leverage without two decimals or outside [1, 50] after clamping.
+TP list errors: price order, percent labeling, quantities/shares.
+risk_percent, wallet_balance_snapshot, im_plan, delta are missing or = 0.
+Sum of TP quantities exceeds planned position size.
+reduce_only/post_only inconsistent with order type.
+TP/SL not exactly according to signal (except in auto-SL fallback) → STOP publishing.
+Exit orders without reduce_only = true → STOP publishing.
+🧮 Calculation and Formatting Policy (PRECISE)
+Leverage: according to formula; clamped [1, 50]; rounded HALF-UP to 2 decimals; displayed xNN.NN.
+Percent: always two decimals and % (e.g. +2.98 %).
+Price: quantized to Bybit’s tick size before sending and at every update.
+Quantities: quantized to the instrument’s min/step.
+Currency: internal calculations in USDT (unless otherwise stated).
+🧰 Conflict and Fallback Rules (DETERMINISTIC)
+SL missing → FAST fallback (SL −2.00 %, x10.00).
+Lev in (6.00×; 7.50×) → classified to closest class.
+If Bybit returns deviating values (e.g. adjusted quantity/leverage) → update internal fields and template before publishing.
+🛰️ Telemetry & Audit Trail
+Log all incoming signals, normalized outcome, calculation input/output (B, r, IM_plan, Delta, N, leverage), API payloads to Bybit, raw API responses, WS events, timestamps and all published Telegram messages.
+All logs must correlate bot_order_id ↔ bybit_order_id/position_id.
+📣 Telegram Reporting
+Continuous messages for all events: signal, order, entry, TP, SL, hedge, pyramid, trailing, re-entry.
+Daily report: total number of trades, win rate, PnL, number of re-entries/hedges/pyramid levels.
+Weekly report: as above + leaderboard of most profitable symbols.
+Operations message every 30 minutes: confirms that the bot is online and shows correct time/uptime.
+📡 Telegram Flow (connection & startup)
+Sources Whitelist: “All Telegram sources in ALL_PARAMETERS” are included in SSoT, no external sources. MUST be whitelisted and included in our SSoT (Single Source of Truth).
+On connection (mandatory print – “green check”):On start/restart the bot must immediately print to the private channel, with Bybit/Telegram confirmation per line (✅):– Wallet balance (baseline): 402.10 USDT (SSoT) ✅– Risk settings (e.g. 2 % per trade) ✅– Strategies that are active ✅– Active positions & open orders (summary) ✅All data MUST be confirmed against Bybit (API/WS) and source Telegram. No assumptions may be published.
+Forwarding to private channel:All approved and normalized signals are sent to the private channel in standard format (templated). Publishing takes place only after Bybit confirmation according to the acknowledgement policy.
+Erroneous signals:Erroneous/incomplete signals are sent raw to the private channel with clear error marking (reason and which fields failed).
+⚙️ Operational Reliability
+Standardized error messages (warning/critical).
+Fast execution without noise.
+Memory cleanup: remove signals that do not pass within normal time; clean up orders that do not become positions.
+Fail-safe: in case of interruption (internet, API error, bot freeze) active positions and SL/TP are resumed; automatic reconnect; balance/position verification on reconnection; guard against order loops.
+Order cleanup (timeouts):Unfilled orders must be cleaned up idempotently according to the following timeouts:– 24h: short timeout for hanging opening orders and partially filled orders (re-query + cancel).– 6d: long-term cleanup of remaining orders that did not result in a position.These jobs MUST be persistent and automatically resumed after restart.
+📉 Stop Loss & Dynamics
+All SL adjustments are based on original entry (not adjusted entry).
+Move SL to BE or to TP1 → interpreted and executed.
+Position size and SL are calculated dynamically based on B, r, IM_plan, E, S.
+When TP2 is hit → SL is moved to BE + cost (0.0015 %).
+SL is thereafter moved according to fixed pyramid and trailing rules.
+🔀 Pyramid & Leverage Rules
+All pyramid levels are recalculated from original entry.
+Ladder (example):+1.5 % → IM = 20 USDT+2.3 % → SL = BE + cost+2.4 % → leverage up to max (50×)+2.5 % → IM = 40 USDT+4 % → IM = 60 USDT+6 % → IM = 80 USDT+8.6 % → IM = 100 USDT
+Leverage classification:≤ 6× → SWING≥ 7.5× → DYNAMIC6–7.5× → classified to nearest according to § Dynamic Leverage.
+📊 Trailing Stop
+At +6.1 % unrealized profit the trailing stop is activated.
+SL is placed 2.5 % behind the highest price (or lowest for SHORT) and follows the price continuously.
+🔄 Hedge & Re-entry
+If the price moves −2 % against the position: open hedge in the opposite direction.– Size = 100 % of the original position.– TP = original SL, SL = original entry.
+After SL hit: attempt re-entry with dual-limit up to 3 times; thereafter stop until a new external signal arrives.
+Hedge positions use the same leverage as the original position.
+📋 Risk & Capacity
+Max 100 active trades simultaneously.
+No daily/weekly loss cap stops the bot.
+Base parameters (SSoT baseline):– Account: 402.10 USDT– Risk: 2 % per trade– Initial IM: 20 USDT per trade
+🔤 Terminology (consistent)
+Use the term SSoT (Single Source of Truth) consistently throughout the document. Replace any variants (SSOT, SSoS, ssos) with SSoT (Single Source of Truth).
+Checklist – everything implemented:✔ 3 whitelisted sources in SSoT • ✔ Startup print with “green check” and baseline 402.10 USDT • ✔ Normalization LONG/SHORT + tick/step • ✔ Dedup: HASH + TTL 2h • ✔ Dual-Limit + merging • ✔ TP/SL exactly according to signal (exception auto-SL) • ✔ Exit = reduce_only=true • ✔ Validation switches for both above • ✔ Timeouts 24h/6d, persistent • ✔ Bybit-first and mandatory template header • ✔ Terminology SSoT consistent.
+here).
+🗂️ A) Correct your existing “Logging” section
+What must be changed
+The phrase “Telegram notifications … are always sent” conflicts with Bybit-first. It must be: sent only after acknowledgement; error messages are separate notifications.
+Clarify timestamp policy: UTC as standard, alternative local time zone (Europe/Stockholm) via config.
+Replace the entire “Logging” with:
+Logging
+• All events on Bybit are logged:
+– Order placement (request/payload)
+– Order acceptance (retCode, orderId)
+– Order fill (WS/REST fills)
+– SL/TP trigger (creation, update, fill)
+– Error messages (class: warning/critical)
+– Reconnects (WS/REST), backoff and recovery
+• Logs are stored locally and are complete (lossless) and are correlated via bot_order_id ↔ bybit_order_id/position_id.
+• Telegram notifications follow standardized templates and are sent ONLY after Bybit acknowledgement (Bybit first). Error notifications are sent separately.
+• All logs and messages are timestamped in UTC (standard). Local time zone can be enabled via config (Europe/Stockholm).
+B) Add under “📨 Signal Handling”
+
+Directly after the first paragraph (about receiving Telegram signals):
+Standardization of outgoing messages
+No raw forwards from source channels. All messages forwarded to our groups MUST be created from our standardized templates and contain all calculated fields (no copied text).
+
+After the symbol support (binds flows to SSoT):
+Category & flows (SSoT)
+The bot’s market flows are connected to Bybit v5 linear (USDT-perpetual) public WS. This does not affect the interpretation of incoming signal formats but governs tick/step normalization and instrument specifications.
+C) “📈 Entry & Order Placement” – insert confirmation chain
+Placement: after the introduction in the section
+Confirmation requirements before publishing (Bybit first)
+– ORDER_PLACED is published ONLY after Bybit response with retCode=0 and valid orderId.
+– POSITION_OPENED is published ONLY after private WS event or polling that confirms that the position is actually opened (executedQty > 0).
+– TP_SL_SET is published ONLY after confirmation that all TP/SL orders are created/updated.
+D) New heading: “📣 Telegram Templates (mandatory fields)”
+(If you do not want a new heading this can be placed at the end of “📈 Entry & Order Placement”.)
+📣 Telegram Templates (mandatory fields)
+The following placeholders MUST exist and be filled in at publishing:
+{order_id}, {post_only}, {reduce_only}, {im_confirmed}, {source_channel_name}.
+{im_confirmed} is fetched explicitly from Bybit response/positions data (must NOT be assumed or locally calculated). Empty/Null/None/"" is not allowed.
+E) New heading: “🔐 Sources & Telegram Client”
+Important on conflict: Earlier decision was “Only three (3) sources”. Below we lock exactly three and name them. (Remove all wording that suggests “additional sources may occur”.)
+🔐 Sources & Telegram Client
+• Telegram client: Only Pyrogram may be used.
+• Sources (whitelist, SSoT): Only three (3) defined sources are monitored and processed:
+– CRYPTORAKETEN
+– LUX_LEAK
+– SMART_CRYPTO
+• All Telegram parameters for these sources (channel_id, title, username, invite_link etc.) MUST be whitelisted in SSoT (Single Source of Truth).
+• Changes to sources require the owner’s explicit approval and SSoT update in a signed release (see “🚦 Safe startup / production”).
+F) New heading: “🧪 Duplicate and Variant Control”
+Here we harmonize variants: Swedish standard SWING, DYNAMIC, FAST. (If you have older text with DYNAMIC/FIXED: replace them with DYNAMIC/FAST.)
+🧪 Duplicate and Variant Control
+• Signal variants (allowed): SWING, DYNAMIC, FAST. (Synonyms: DYNAMIC → DYNAMIC, FIXED → FAST.)• Other variants are not allowed in templates or runtime.• Deduplication: as in “Duplication guard” + HASH+TTL (2h) according to SSoT.
+G) New heading: “🚦 Safe Startup / Production”
+🚦 Safe Startup / Production
+The bot may be run against mainnet only when a signed release is validated with a governance token (checked in runtime code). Otherwise the bot runs in demo mode. This rule is process and security related; no API keys or secrets are documented here.
+Summary check (Telegram requirements updated correctly)
+✅ Bybit-first is reflected in Logging and Confirmation requirements before publishing.
+✅ No raw forwards: Standardization of outgoing messages added in Signal Handling.
+✅ Template fields for Telegram (incl. {im_confirmed} from Bybit) defined.
+✅ Source whitelist: exactly 3 sources named, Pyrogram requirement clear, linked to SSoT.
+✅ Variants locked: SWING, DYNAMIC, FAST (with synonym mapping).
+✅ Flow binding to Bybit v5 linear in Signal Handling.
+✅ Governance gate for production added.
+Sync points to mirror fully in the governing documents
+Dual-Limit & Merging with Δ and pᵣ formula; postOnly=true, GTC, 50/50; maker protection (tick adjustment)
+What my bot must do 2025-09-07
+.
+Dynamic leverage (the formula, clamping, classification SWING ≤ 6.00× / DYNAMIC ≥ 7.50× / FAST fallback when SL is missing = −2.00 %, x10.00)
+What my bot must do 2025-09-07
+.
+Bybit-first flow and the mandatory template header
+What my bot must do 2025-09-07
+.
+Dedup HASH + TTL 2h in addition to the percentage thresholds
+What my bot must do 2025-09-07
+.
+Exits reduce_only=true and TP/SL exactly according to signal (exception: auto-SL fallback)
+What my bot must do 2025-09-07
+.
+Timeouts 24h/6d for order cleanup (persistent jobs)
+What my bot must do 2025-09-07
+.
+Startup (green check) with baseline 402.10 USDT and Bybit/Telegram acknowledgement per line – must be present in Runbook and README (startup section)
+Additions that must go into the Word documents (for full mirroring)
+Insert the following text sections into “What my bot must do” and where needed into “Telegram messages”:
+Pyrogram exclusivity“Telegram client: Only Pyrogram is used. Other clients (e.g. Telethon) are prohibited.”
+Dual-Limit & Merge (replaces Above/Below)“Order plan: Dual-Limit & merging (Δ model). Two Post-Only GTC entries around target level Eₘ ± Δ. Merge-on-first-fill secures final avg_entry = Eₘ. Above/Below does not occur in the system.”
+Startup baseline + header requirements“Startup message shows Balance baseline: 402.10 USDT (SSoT) ✅ and Cleanup timeouts: 24h/6d. All operations templates have the top line ‘SENT ONLY AFTER BYBIT CONFIRMATION’.”
+TP/SL accuracy“TP and SL are set exactly according to the signal. Exception: SL missing in source → auto-SL = −2.00 % and leverage FAST x10.00.”
+DEMO lock“Runtime environment: Bybit DEMO only. All REST/WS endpoints are DEMO. (Production requires separate governance release.)”
+Performance/“fast bot”“Requirement: REST latency ≤ 500 ms p95, WS heartbeat ≤ 30 s, effective rate-limit handling, no blocking chokepoints in the main loop. Deviation ⇒ operations are blocked until fixed.”
+Manual checks“All verification in production is done manually, step by step, with after-check before the next step. No automated tests in production.”
+Extra: items that “must go in Word” if they are not already there
+(Most are already present, but add if something is missing.)
+Presentation standard for Telegram (Swedish) – a normative line in Word about comma as decimal separator and space before % and xNN,NN for leverage.
+Telegram messages
+Startup conditions in clear text: retCode=0, REST≤500 ms p95, WS≤30 s, can_send=true, governance OK, JSONL logging with message_text_hash and trace_id. (It is in your English startup template; mirror it in Swedish in
+
+What my bot must do 2025-09-07.docx — OK, but reinforcements
+This Word document contains in principle all requirements we base the governing documents on: Pyrogram exclusivity, 3 sources (whitelist/SSoT), Dual-Limit Δ model, Dynamic leverage (Δ), Bybit-first + header, Dedup HASH+TTL 2h, reduce_only on exits, TP/SL exact, timeouts 24h/6d, startup baseline 402.10 and performance thresholds + manual control.
+Recommended minor adjustment (optional clarification):
+Insert a short norm line for Swedish Telegram format (decimal mark, space before %) directly in the section about templates, so it cannot be misinterpreted. (It is already in “Telegram messages”, but good to mirror the sentence here as well.)
+Telegram messages
+Otherwise: no change needed; this is the source SSoT.
+ENGLISH
+T G+46
+703689310

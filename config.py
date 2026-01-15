@@ -89,9 +89,28 @@ DEMO_MODE = False  # Will be set by startup_checker
 # Duplicate Detection TTL (hours)
 DUPLICATE_TTL_HOURS = 2
 
+# Stage 1 requires a canonical signal_type ∈ {SWING, DYNAMISK, FAST}.
+# Some sources don't explicitly include either keywords or leverage in the message text.
+# These defaults ensure deterministic behavior instead of rejecting otherwise valid signals.
+DEFAULT_SIGNAL_TYPE_WHEN_MISSING = "SWING"
+DEFAULT_SIGNAL_TYPE_BY_CHANNEL = {
+    # SMART_CRYPTO "OPPORTUNITY DETECTED" templates are typically quick-move oriented.
+    "SMART_CRYPTO": "FAST",
+}
+
 # Signal Extraction Logging
 EXTRACT_SIGNALS_LOG = Path("logs/extracted_signals.log")
 EXTRACT_SIGNALS_ONLY = True  # True = Extract but don't forward to private channel
+
+# ============================================================================
+# SSoT (SIGNAL STORE) - SQLITE CONFIGURATION
+# ============================================================================
+
+# Persistent internal Signal Store (SSoT) queue (SQLite)
+SSOT_ENABLE = True
+SSOT_DB_PATH = Path("data/ssot.sqlite3")
+SSOT_SQLITE_WAL = True
+SSOT_SQLITE_BUSY_TIMEOUT_MS = 5000
 
 # ============================================================================
 # LOGGING CONFIGURATION
@@ -149,6 +168,7 @@ def ensure_directories():
     """Ensure all required directories exist."""
     LOG_DIR.mkdir(exist_ok=True)
     EXTRACT_SIGNALS_LOG.parent.mkdir(exist_ok=True)
+    SSOT_DB_PATH.parent.mkdir(exist_ok=True)
 
 def get_config_summary() -> dict:
     """Get configuration summary for logging."""
@@ -174,6 +194,8 @@ def get_config_summary() -> dict:
         "operation": {
             "extract_signals_only": EXTRACT_SIGNALS_ONLY,
             "duplicate_ttl_hours": DUPLICATE_TTL_HOURS,
+            "ssot_enable": SSOT_ENABLE,
+            "ssot_db_path": str(SSOT_DB_PATH),
         }
     }
 

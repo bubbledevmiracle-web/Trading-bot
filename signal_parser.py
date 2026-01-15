@@ -109,15 +109,23 @@ class SignalParser:
     def _extract_entry(self, text: str) -> Dict:
         """Extract entry price or zone."""
         entry_patterns = [
+            # Entry label variants
             r'Entry\s*(?:zone|Price|Targets?|Orders?)?\s*[:\-]?\s*\$?([\d.]+)',
             r'Entry\s*[:\-]\s*\$?([\d.]+)',
             r'Entries?\s*[:\-]?\s*\$?([\d.]+)',
             r'Entry\s+price\s*[:\-]?\s*\$?([\d.]+)',
             r'Entry\s+Orders?\s*[:\-]?\s*\$?([\d.]+)',
+            # Common channel variants: Buy/Sell used as entry label
+            r'\bBuy\b\s*[:\-]?\s*\$?([\d.]+)',
+            r'\bSell\b\s*[:\-]?\s*\$?([\d.]+)',
         ]
         
         # Try to find entry zone (two prices)
-        zone_pattern = r'Entry\s*(?:zone)?\s*[:\-]?\s*\$?([\d.]+)\s*[-–]\s*\$?([\d.]+)'
+        # Support common formats:
+        # - Entry: 0.03056 - 0.03168
+        # - Buy: 0.03056 - 0.03168
+        # - Sell: 0.03056 - 0.03168
+        zone_pattern = r'(?:Entry|Buy|Sell)\s*(?:zone|price)?\s*[:\-]?\s*\$?([\d.]+)\s*[-–]\s*\$?([\d.]+)'
         zone_match = re.search(zone_pattern, text, re.IGNORECASE)
         if zone_match:
             price1 = Decimal(zone_match.group(1))

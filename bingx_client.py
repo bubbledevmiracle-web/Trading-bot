@@ -31,6 +31,43 @@ import requests
 logger = logging.getLogger(__name__)
 
 # ============================================================================
+# INTERNAL HELPERS
+# ============================================================================
+
+def _safe_decimal(value, default: Decimal) -> Decimal:
+    """
+    Convert arbitrary value to Decimal, falling back deterministically.
+    """
+    try:
+        if value is None:
+            return default
+        s = str(value).strip()
+        if not s:
+            return default
+        return Decimal(s)
+    except Exception:
+        return default
+
+
+def _step_from_precision(precision) -> Optional[Decimal]:
+    """
+    Convert a "precision digits" integer into a step size Decimal.
+    Example: 3 -> 0.001
+    """
+    try:
+        if precision is None:
+            return None
+        p = int(str(precision).strip())
+        if p < 0:
+            return None
+        if p == 0:
+            return Decimal("1")
+        return Decimal("1") / (Decimal("10") ** p)
+    except Exception:
+        return None
+
+
+# ============================================================================
 # CONFIGURATION
 # ============================================================================
 
@@ -87,17 +124,19 @@ class BingXClient:
         
         logger.info(f"BingX client initialized (testnet={testnet})")
     
-    def _generate_signature(self, params: Dict) -> str:
+    def _generate_signature(self, query_string: str) -> str:
         """
         Generate HMAC SHA256 signature for BingX API.
         
+        According to BingX documentation:
+        echo -n 'recvWindow=0&symbol=BTC-USDT&timestamp=xxx' | openssl dgst -sha256 -hmac 'SECRET_KEY' -hex
+        
         Args:
-            params: Request parameters
+            query_string: Unencoded query string (e.g., "recvWindow=0&timestamp=1234567890")
             
         Returns:
-            Signature string
+            64-character lowercase hexadecimal signature string
         """
-        query_string = urlencode(sorted(params.items()))
         signature = hmac.new(
             self.secret_key.encode('utf-8'),
             query_string.encode('utf-8'),
@@ -121,24 +160,44 @@ class BingXClient:
         if params is None:
             params = {}
         
-        # Add timestamp
-        if signed:
-            params['timestamp'] = int(time.time() * 1000)
-            
-            # Generate signature
-            signature = self._generate_signature(params)
-            params['signature'] = signature
-        
         url = f"{self.base_url}{endpoint}"
         headers = {
             'X-BX-APIKEY': self.api_key
         }
         
+        # Add timestamp and recvWindow for signed requests
+        if signed:
+            timestamp = str(int(time.time() * 1000))
+            params['timestamp'] = timestamp
+            params['recvWindow'] = '60000'  # 60 seconds window
+            
+            # Sort parameters alphabetically and create query string
+            # NOTE: Do NOT URL encode for signature generation
+            sorted_params = sorted(params.items())
+            query_string = '&'.join([f"{k}={v}" for k, v in sorted_params])
+            
+            # Generate signature from unencoded query string
+            signature = self._generate_signature(query_string)
+            
+            # CRITICAL: Rebuild params dict in sorted order to match signature
+            # This ensures the URL parameters are in the same order as signed
+            params = dict(sorted_params)
+            params['signature'] = signature
+            
+            # ALWAYS log signature details for debugging
+            logger.info(f"🔐 BingX Signature:")
+            logger.info(f"   Timestamp: {timestamp}")
+            logger.info(f"   Query string: {query_string}")
+            logger.info(f"   API Key (first 20): {self.api_key[:20]}...")
+            logger.info(f"   Secret (first 20): {self.secret_key[:20]}...")
+            logger.info(f"   Signature: {signature}")
+        
         try:
             if method == 'GET':
                 response = requests.get(url, params=params, headers=headers, timeout=10)
             elif method == 'POST':
-                response = requests.post(url, data=params, headers=headers, timeout=10)
+                # For POST, BingX expects parameters in the query string, not body
+                response = requests.post(url, params=params, headers=headers, timeout=10)
             elif method == 'DELETE':
                 response = requests.delete(url, params=params, headers=headers, timeout=10)
             else:
@@ -147,6 +206,16 @@ class BingXClient:
             response.raise_for_status()
             return response.json()
             
+        except requests.exceptions.RequestException as e:
+            logger.error(f"BingX API request error: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_data = e.response.json()
+                    logger.error(f"BingX error response: {error_data}")
+                    return error_data
+                except:
+                    pass
+            return {'code': -1, 'msg': str(e)}
         except Exception as e:
             logger.error(f"BingX API request error: {e}")
             return {'code': -1, 'msg': str(e)}
@@ -163,12 +232,16 @@ class BingXClient:
             return False
         
         try:
+            logger.info(f"Testing BingX API connection to: {self.base_url}")
+            
             # Test with balance endpoint
             response = self._send_request(
                 'GET',
                 '/openApi/swap/v2/user/balance',
                 signed=True
             )
+            
+            logger.debug(f"BingX response: {response}")
             
             if response.get('code') == 0:
                 # Extract balance
@@ -184,11 +257,13 @@ class BingXClient:
                     return True
             else:
                 error_msg = response.get('msg', 'Unknown error')
-                logger.error(f"❌ BingX connection failed: {error_msg} (code: {response.get('code')})")
+                error_code = response.get('code', 'N/A')
+                logger.error(f"❌ BingX connection failed: {error_msg} (code: {error_code})")
+                logger.error(f"Full response: {response}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ BingX connection failed: {e}")
+            logger.error(f"❌ BingX connection failed: {e}", exc_info=True)
             return False
     
     def get_account_balance(self) -> Decimal:
@@ -242,11 +317,21 @@ class BingXClient:
                 data = response.get('data', [])
                 for instrument in data:
                     if instrument.get('symbol') == formatted_symbol:
+                        # Normalize tick/step deterministically even when the API returns None/empty.
+                        raw_tick = instrument.get('tickSize')
+                        tick_size = _safe_decimal(raw_tick, Decimal("0"))
+                        if tick_size <= 0:
+                            tick_from_prec = _step_from_precision(instrument.get("pricePrecision"))
+                            if tick_from_prec is not None:
+                                tick_size = tick_from_prec
+
+                        qty_step = _step_from_precision(instrument.get('quantityPrecision')) or Decimal("0")
+
                         return {
                             'symbol': instrument.get('symbol'),
-                            'tickSize': instrument.get('tickSize'),
+                            'tickSize': str(tick_size),
                             'lotSizeFilter': {
-                                'qtyStep': instrument.get('quantityPrecision'),
+                                'qtyStep': str(qty_step),
                                 'minQty': instrument.get('minQty'),
                                 'maxQty': instrument.get('maxQty')
                             }

@@ -38,6 +38,7 @@ from pyrogram.errors import (
 
 import config
 from bingx_client import BingXClient
+from ssot_store import SignalStore
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,11 @@ class StartupChecker:
         if not config.LOG_DIR.exists():
             governance_data["checks"].append("Log directory missing")
             governance_data["production_ready"] = False
+
+        # Check 4: SSoT directory exists (created by config.ensure_directories())
+        if config.SSOT_ENABLE and not config.SSOT_DB_PATH.parent.exists():
+            governance_data["checks"].append("SSoT directory missing")
+            governance_data["production_ready"] = False
         
         # Determine if we can proceed
         if governance_data["production_ready"]:
@@ -209,6 +215,56 @@ class StartupChecker:
                 governance_data
             )
             return True, governance_data
+
+    # ========================================================================
+    # STAGE 0.1.5 - SSoT (SQLITE) READINESS
+    # ========================================================================
+
+    def check_ssot_store(self) -> Tuple[bool, Dict]:
+        """
+        Verify persistent internal Signal Store (SSoT) is ready.
+
+        This is a critical requirement for the corrected logic:
+        extract signals from group channels -> store to SQLite SSoT.
+        """
+        ssot_data = {
+            "enabled": config.SSOT_ENABLE,
+            "db_path": str(config.SSOT_DB_PATH),
+            "wal": getattr(config, "SSOT_SQLITE_WAL", True),
+            "busy_timeout_ms": getattr(config, "SSOT_SQLITE_BUSY_TIMEOUT_MS", 5000),
+        }
+
+        if not config.SSOT_ENABLE:
+            self._log_check(
+                "SSoT SQLite",
+                False,
+                "SSoT is disabled (SSOT_ENABLE=False) - cannot run corrected ingestion logic",
+                ssot_data,
+            )
+            return False, ssot_data
+
+        try:
+            store = SignalStore(
+                config.SSOT_DB_PATH,
+                enable_wal=config.SSOT_SQLITE_WAL,
+                busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
+            )
+            store.close()
+            self._log_check(
+                "SSoT SQLite",
+                True,
+                f"SSoT SQLite ready: {config.SSOT_DB_PATH}",
+                ssot_data,
+            )
+            return True, ssot_data
+        except Exception as e:
+            self._log_check(
+                "SSoT SQLite",
+                False,
+                f"Failed to initialize SSoT SQLite: {e}",
+                ssot_data,
+            )
+            return False, ssot_data
         else:
             # Check if DEMO mode is allowed
             if governance_data["demo_mode_allowed"]:
@@ -723,6 +779,7 @@ class StartupChecker:
         # Stage 0.1 - Config & Governance
         config_ok, config_data = self.check_config_loaded()
         governance_ok, governance_data = self.check_governance()
+        ssot_ok, ssot_data = self.check_ssot_store()
         
         # Stage 0.2 - BingX API & WebSocket
         bingx_api_ok, bingx_api_data = self.check_bingx_api()
@@ -738,7 +795,7 @@ class StartupChecker:
         duration = (self.end_time - self.start_time).total_seconds()
         
         # Determine overall success
-        critical_checks = [config_ok, telegram_ok]
+        critical_checks = [config_ok, ssot_ok, telegram_ok]
         
         if config.ENABLE_TRADING:
             # If trading enabled, BingX checks are critical
@@ -771,6 +828,7 @@ class StartupChecker:
             "details": {
                 "config": config_data,
                 "governance": governance_data,
+                "ssot": ssot_data,
                 "bingx_api": bingx_api_data,
                 "bingx_websocket": bingx_ws_data,
                 "telegram": telegram_data,
