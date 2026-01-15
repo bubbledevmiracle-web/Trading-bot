@@ -37,7 +37,7 @@ from pyrogram.types import Message
 import config
 from startup_checker import StartupChecker
 from ssot_store import SignalStore
-from stage1_processor import Stage1SignalProcessor
+from signal_ingestion import SignalIngestionNormalizerProcessor
 
 # ============================================================================
 # LOGGING SETUP
@@ -286,7 +286,7 @@ class TelegramForwarder:
 
         # Persistent internal Signal Store (SSoT)
         self.ssot_store: Optional[SignalStore] = None
-        self.stage1: Optional[Stage1SignalProcessor] = None
+        self.stage1: Optional[SignalIngestionNormalizerProcessor] = None
     
     async def start(self):
         """Start the Telegram client and run Stage 0 checks."""
@@ -302,7 +302,7 @@ class TelegramForwarder:
                 busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
             )
             logger.info(f"✅ SSoT SQLite ready: {config.SSOT_DB_PATH}")
-            self.stage1 = Stage1SignalProcessor(self.ssot_store)
+            self.stage1 = SignalIngestionNormalizerProcessor(self.ssot_store)
         
         # ====================================================================
         # STAGE 0 - INITIALIZATION & SAFETY

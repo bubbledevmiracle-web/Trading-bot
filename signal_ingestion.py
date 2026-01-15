@@ -186,7 +186,7 @@ def _entry_bucket(entry: Decimal) -> int:
     return int((entry / step).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-class Stage1SignalProcessor:
+class SignalIngestionNormalizerProcessor:
     def __init__(self, store: SignalStore):
         self.store = store
         self.parser = SignalParser()
