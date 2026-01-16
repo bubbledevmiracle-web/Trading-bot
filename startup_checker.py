@@ -5,7 +5,7 @@ Startup Checker - Stage 0 Initialization & Safety
 ==================================================
 Implements all Stage 0 checks before bot becomes operational:
 1. Load Config & Governance Check
-2. Connect Bybit API & WS (verify retCode=0, heartbeat ≤30s)
+2. Connect BingX API & WS (verify code=0, heartbeat ≤30s)
 3. Connect Telegram/Pyrogram (verify 5 whitelisted channels)
 4. Fetch Baseline: Account Balance, Active Trades, Strategies
 5. Prepare Startup Message with green checks (✅)

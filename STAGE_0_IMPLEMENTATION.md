@@ -18,7 +18,7 @@ trading_bot_2026_01_08/
 ├── config.py                    # ✨ NEW - Centralized configuration
 ├── startup_checker.py           # ✨ NEW - Stage 0 initialization logic
 ├── main.py                      # ♻️  REFACTORED - Simplified (490 lines → cleaner)
-├── bybit_client.py              # ♻️  UPDATED - Added WebSocket support
+├── bingx_client.py              # ♻️  UPDATED - Added WebSocket support
 ├── trading_bot_integration.py   # ♻️  UPDATED - Uses config module
 ├── signal_parser.py             # ✅ UNCHANGED
 ├── order_manager.py             # ✅ UNCHANGED
@@ -46,8 +46,8 @@ trading_bot_2026_01_08/
 │  2. STAGE 0 - INITIALIZATION & SAFETY                   │
 ├─────────────────────────────────────────────────────────┤
 │  ✅ Load Config & Governance Check                      │
-│  ✅ Connect Bybit API (verify retCode=0)                │
-│  ✅ Connect Bybit WebSocket (verify heartbeat ≤30s)     │
+│  ✅ Connect BingX API (verify code=0)                   │
+│  ✅ Connect BingX WebSocket (verify heartbeat ≤30s)     │
 │  ✅ Connect Telegram (verify 5 channels)                │
 │  ✅ Fetch Baseline (balance, positions, strategies)     │
 │  ✅ Prepare Startup Message                             │

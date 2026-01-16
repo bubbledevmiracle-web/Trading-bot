@@ -1,0 +1,342 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Stage 4 - Lifecycle Store (SQLite)
+==================================
+Durable, idempotent storage for TP/SL lifecycle management.
+
+This store is intentionally independent from Stage 1/2 SignalStore logic, but it
+uses the same SQLite database file for operational simplicity.
+
+Author: Trading Bot Project
+Date: 2026-01-16
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import sqlite3
+import threading
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+logger = logging.getLogger(__name__)
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+@dataclass(frozen=True)
+class Stage2CompletedRow:
+    ssot_id: int
+    symbol: str
+    side: str
+    entry_price: str
+    sl_price: str
+    tp_prices: List[str]
+    stage2_json: Optional[str]
+
+
+class LifecycleStore:
+    def __init__(
+        self,
+        db_path: Path,
+        *,
+        enable_wal: bool = True,
+        busy_timeout_ms: int = 5000,
+    ):
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        # Stage 4 uses asyncio.to_thread(...) for DB work. SQLite defaults to "same thread only",
+        # so we must allow cross-thread usage and protect access with a lock.
+        self._lock = threading.Lock()
+        self._conn = sqlite3.connect(
+            self.db_path,
+            timeout=max(busy_timeout_ms / 1000.0, 1.0),
+            check_same_thread=False,
+        )
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA foreign_keys = ON;")
+        self._conn.execute(f"PRAGMA busy_timeout = {int(busy_timeout_ms)};")
+        if enable_wal:
+            self._conn.execute("PRAGMA journal_mode = WAL;")
+        self._ensure_schema()
+
+    def close(self) -> None:
+        try:
+            with self._lock:
+                self._conn.close()
+        except Exception:
+            pass
+
+    def _ensure_schema(self) -> None:
+        with self._lock:
+            self._conn.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS stage4_positions (
+                    ssot_id                 INTEGER PRIMARY KEY,
+                    symbol                  TEXT NOT NULL,
+                    side                    TEXT NOT NULL,
+                    status                  TEXT NOT NULL,
+                    planned_qty             TEXT,
+                    remaining_qty           TEXT,
+                    avg_entry               TEXT,
+                    sl_price                TEXT,
+                    sl_order_id             TEXT,
+                    tp_levels_json          TEXT NOT NULL,
+                    created_at_utc          TEXT NOT NULL,
+                    updated_at_utc          TEXT NOT NULL,
+                    last_reconcile_at_utc   TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS stage4_order_tracker (
+                    order_id                TEXT PRIMARY KEY,
+                    ssot_id                 INTEGER NOT NULL,
+                    kind                    TEXT NOT NULL,
+                    level_index             INTEGER,
+                    last_executed_qty       TEXT NOT NULL DEFAULT '0',
+                    last_status             TEXT,
+                    updated_at_utc          TEXT NOT NULL,
+                    FOREIGN KEY(ssot_id) REFERENCES stage4_positions(ssot_id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_stage4_positions_symbol
+                ON stage4_positions(symbol);
+                """
+            )
+            self._conn.commit()
+
+    # ---------------------------------------------------------------------
+    # Discovery: Stage 2 completed rows (from ssot_queue)
+    # ---------------------------------------------------------------------
+    def list_new_stage2_completed(self, *, limit: int = 25) -> List[Stage2CompletedRow]:
+        """
+        Find Stage 2 COMPLETED signals that are not yet initialized in Stage 4.
+        """
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                rows = cur.execute(
+                    """
+                    SELECT
+                        q.id AS ssot_id,
+                        q.symbol,
+                        q.side,
+                        q.entry_price,
+                        q.sl_price,
+                        q.tp_prices_json,
+                        q.stage2_json
+                    FROM ssot_queue q
+                    LEFT JOIN stage4_positions p
+                           ON p.ssot_id = q.id
+                    WHERE q.status = 'COMPLETED'
+                      AND p.ssot_id IS NULL
+                    ORDER BY q.id ASC
+                    LIMIT ?;
+                    """,
+                    (int(limit),),
+                ).fetchall()
+                out: List[Stage2CompletedRow] = []
+                for r in rows:
+                    out.append(
+                        Stage2CompletedRow(
+                            ssot_id=int(r["ssot_id"]),
+                            symbol=r["symbol"],
+                            side=r["side"],
+                            entry_price=r["entry_price"],
+                            sl_price=r["sl_price"],
+                            tp_prices=json.loads(r["tp_prices_json"] or "[]"),
+                            stage2_json=r["stage2_json"],
+                        )
+                    )
+                return out
+            finally:
+                cur.close()
+
+    # ---------------------------------------------------------------------
+    # Stage 4 positions
+    # ---------------------------------------------------------------------
+    def create_position_if_absent(
+        self,
+        *,
+        ssot_id: int,
+        symbol: str,
+        side: str,
+        status: str,
+        planned_qty: Optional[str],
+        remaining_qty: Optional[str],
+        avg_entry: Optional[str],
+        sl_price: Optional[str],
+        tp_levels: List[Dict[str, Any]],
+    ) -> bool:
+        """
+        Create a stage4_positions row once; safe to call repeatedly.
+        Returns True if inserted, False if already exists.
+        """
+        now = _utc_now_iso()
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                cur.execute("BEGIN;")
+                cur.execute(
+                    """
+                    INSERT OR IGNORE INTO stage4_positions(
+                        ssot_id, symbol, side, status,
+                        planned_qty, remaining_qty, avg_entry,
+                        sl_price, sl_order_id,
+                        tp_levels_json,
+                        created_at_utc, updated_at_utc, last_reconcile_at_utc
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, NULL);
+                    """,
+                    (
+                        int(ssot_id),
+                        str(symbol),
+                        str(side),
+                        str(status),
+                        planned_qty,
+                        remaining_qty,
+                        avg_entry,
+                        sl_price,
+                        json.dumps(tp_levels, separators=(",", ":"), ensure_ascii=False),
+                        now,
+                        now,
+                    ),
+                )
+                inserted = cur.rowcount > 0
+                self._conn.commit()
+                return inserted
+            except Exception:
+                self._conn.rollback()
+                raise
+            finally:
+                cur.close()
+
+    def get_position(self, *, ssot_id: int) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                r = cur.execute("SELECT * FROM stage4_positions WHERE ssot_id = ?;", (int(ssot_id),)).fetchone()
+                if r is None:
+                    return None
+                d = dict(r)
+                d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                return d
+            finally:
+                cur.close()
+
+    def update_position(
+        self,
+        *,
+        ssot_id: int,
+        status: Optional[str] = None,
+        remaining_qty: Optional[str] = None,
+        avg_entry: Optional[str] = None,
+        sl_order_id: Optional[str] = None,
+        sl_price: Optional[str] = None,
+        tp_levels: Optional[List[Dict[str, Any]]] = None,
+        last_reconcile_at_utc: Optional[str] = None,
+    ) -> None:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                updates: List[Tuple[str, Any]] = []
+                if status is not None:
+                    updates.append(("status", status))
+                if remaining_qty is not None:
+                    updates.append(("remaining_qty", remaining_qty))
+                if avg_entry is not None:
+                    updates.append(("avg_entry", avg_entry))
+                if sl_order_id is not None:
+                    updates.append(("sl_order_id", sl_order_id))
+                if sl_price is not None:
+                    updates.append(("sl_price", sl_price))
+                if tp_levels is not None:
+                    updates.append(("tp_levels_json", json.dumps(tp_levels, separators=(",", ":"), ensure_ascii=False)))
+                if last_reconcile_at_utc is not None:
+                    updates.append(("last_reconcile_at_utc", last_reconcile_at_utc))
+
+                # Always update updated_at_utc
+                updates.append(("updated_at_utc", _utc_now_iso()))
+
+                set_clause = ", ".join([f"{k} = ?" for k, _ in updates])
+                params = [v for _, v in updates] + [int(ssot_id)]
+                cur.execute(f"UPDATE stage4_positions SET {set_clause} WHERE ssot_id = ?;", params)
+                self._conn.commit()
+            finally:
+                cur.close()
+
+    # ---------------------------------------------------------------------
+    # Order tracking (idempotency for polling-based fills)
+    # ---------------------------------------------------------------------
+    def upsert_order_tracker(
+        self,
+        *,
+        ssot_id: int,
+        order_id: str,
+        kind: str,
+        level_index: Optional[int],
+        last_executed_qty: str = "0",
+        last_status: Optional[str] = None,
+    ) -> None:
+        now = _utc_now_iso()
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                cur.execute(
+                    """
+                    INSERT INTO stage4_order_tracker(order_id, ssot_id, kind, level_index, last_executed_qty, last_status, updated_at_utc)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(order_id) DO UPDATE SET
+                        ssot_id = excluded.ssot_id,
+                        kind = excluded.kind,
+                        level_index = excluded.level_index,
+                        last_executed_qty = COALESCE(stage4_order_tracker.last_executed_qty, excluded.last_executed_qty),
+                        last_status = COALESCE(stage4_order_tracker.last_status, excluded.last_status),
+                        updated_at_utc = excluded.updated_at_utc;
+                    """,
+                    (str(order_id), int(ssot_id), str(kind), level_index, str(last_executed_qty), last_status, now),
+                )
+                self._conn.commit()
+            finally:
+                cur.close()
+
+    def list_tracked_orders(self, *, limit: int = 500) -> List[Dict[str, Any]]:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                rows = cur.execute(
+                    """
+                    SELECT order_id, ssot_id, kind, level_index, last_executed_qty, last_status
+                    FROM stage4_order_tracker
+                    ORDER BY updated_at_utc ASC
+                    LIMIT ?;
+                    """,
+                    (int(limit),),
+                ).fetchall()
+                return [dict(r) for r in rows]
+            finally:
+                cur.close()
+
+    def update_order_tracker(self, *, order_id: str, last_executed_qty: str, last_status: Optional[str]) -> None:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                cur.execute(
+                    """
+                    UPDATE stage4_order_tracker
+                    SET last_executed_qty = ?,
+                        last_status = ?,
+                        updated_at_utc = ?
+                    WHERE order_id = ?;
+                    """,
+                    (str(last_executed_qty), last_status, _utc_now_iso(), str(order_id)),
+                )
+                self._conn.commit()
+            finally:
+                cur.close()
+
+

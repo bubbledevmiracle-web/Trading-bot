@@ -72,6 +72,30 @@ class StoredSignal:
     qty_step: str
 
 
+@dataclass(frozen=True)
+class QueuedSignal:
+    id: int
+    source_channel_name: str
+    chat_id: str
+    message_id: int
+    message_ts_utc: Optional[str]
+    received_at_utc: str
+    raw_text: str
+    symbol: str
+    side: str
+    entry_price: str
+    sl_price: str
+    tp_prices: List[str]
+    signal_type: str
+    tick_size: str
+    qty_step: str
+    status: str
+    locked_by: Optional[str]
+    locked_at_utc: Optional[str]
+    stage2_json: Optional[str]
+    last_error: Optional[str]
+
+
 class SignalStore:
     """
     SQLite-backed persistent internal Signal Store (SSoT).
@@ -129,6 +153,9 @@ class SignalStore:
             CREATE INDEX IF NOT EXISTS idx_ssot_queue_received_at
             ON ssot_queue(received_at_utc);
 
+            CREATE INDEX IF NOT EXISTS idx_ssot_queue_status
+            ON ssot_queue(received_at_utc);
+
             CREATE TABLE IF NOT EXISTS recent_signals (
                 id                  INTEGER PRIMARY KEY AUTOINCREMENT,
                 created_at_utc      TEXT NOT NULL,
@@ -145,7 +172,29 @@ class SignalStore:
             ON recent_signals(source_channel_name, symbol, side, created_at_utc);
             """
         )
+        # Lightweight migrations for new Stage 2 execution columns.
+        self._ensure_column("ssot_queue", "status", "TEXT NOT NULL DEFAULT 'QUEUED'")
+        self._ensure_column("ssot_queue", "locked_by", "TEXT")
+        self._ensure_column("ssot_queue", "locked_at_utc", "TEXT")
+        self._ensure_column("ssot_queue", "stage2_json", "TEXT")
+        self._ensure_column("ssot_queue", "last_error", "TEXT")
         self._conn.commit()
+
+    def _ensure_column(self, table: str, column: str, decl: str) -> None:
+        """
+        Add a column to a table if it doesn't exist.
+        Safe for repeated runs.
+        """
+        cur = self._conn.cursor()
+        try:
+            rows = cur.execute(f"PRAGMA table_info({table});").fetchall()
+            existing = {r["name"] for r in rows}
+            if column in existing:
+                return
+            cur.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl};")
+            self._conn.commit()
+        finally:
+            cur.close()
 
     def insert_accepted_signal(
         self,
@@ -216,6 +265,117 @@ class SignalStore:
         except Exception:
             self._conn.rollback()
             raise
+        finally:
+            cur.close()
+
+    def claim_next_signal(self, *, worker_id: str, lock_ttl_seconds: int = 600) -> Optional[QueuedSignal]:
+        """
+        Atomically claim the next QUEUED signal for Stage 2 execution.
+
+        If a row is CLAIMED but older than lock_ttl_seconds, it becomes eligible again.
+        """
+        now_iso = _utc_now_iso()
+        cur = self._conn.cursor()
+        try:
+            cur.execute("BEGIN IMMEDIATE;")
+            row = cur.execute(
+                """
+                SELECT id
+                FROM ssot_queue
+                WHERE status IN ('QUEUED', 'RETRY')
+                   OR (
+                        status = 'CLAIMED'
+                        AND locked_at_utc IS NOT NULL
+                        AND (strftime('%s','now') - strftime('%s', locked_at_utc)) >= ?
+                   )
+                ORDER BY id ASC
+                LIMIT 1;
+                """,
+                (int(lock_ttl_seconds),),
+            ).fetchone()
+            if row is None:
+                self._conn.commit()
+                return None
+
+            ssot_id = int(row["id"])
+            cur.execute(
+                """
+                UPDATE ssot_queue
+                SET status = 'CLAIMED',
+                    locked_by = ?,
+                    locked_at_utc = ?
+                WHERE id = ?;
+                """,
+                (worker_id, now_iso, ssot_id),
+            )
+
+            full = cur.execute(
+                """
+                SELECT
+                    id, source_channel_name, chat_id, message_id, message_ts_utc, received_at_utc,
+                    raw_text, symbol, side, entry_price, sl_price, tp_prices_json, signal_type,
+                    tick_size, qty_step,
+                    status, locked_by, locked_at_utc, stage2_json, last_error
+                FROM ssot_queue
+                WHERE id = ?;
+                """,
+                (ssot_id,),
+            ).fetchone()
+            self._conn.commit()
+
+            if full is None:
+                return None
+
+            return QueuedSignal(
+                id=int(full["id"]),
+                source_channel_name=full["source_channel_name"],
+                chat_id=full["chat_id"],
+                message_id=int(full["message_id"]),
+                message_ts_utc=full["message_ts_utc"],
+                received_at_utc=full["received_at_utc"],
+                raw_text=full["raw_text"],
+                symbol=full["symbol"],
+                side=full["side"],
+                entry_price=full["entry_price"],
+                sl_price=full["sl_price"],
+                tp_prices=json.loads(full["tp_prices_json"]),
+                signal_type=full["signal_type"],
+                tick_size=full["tick_size"],
+                qty_step=full["qty_step"],
+                status=full["status"],
+                locked_by=full["locked_by"],
+                locked_at_utc=full["locked_at_utc"],
+                stage2_json=full["stage2_json"],
+                last_error=full["last_error"],
+            )
+        except Exception:
+            self._conn.rollback()
+            raise
+        finally:
+            cur.close()
+
+    def update_queue_row(
+        self,
+        *,
+        ssot_id: int,
+        status: str,
+        stage2: Optional[dict] = None,
+        last_error: Optional[str] = None,
+    ) -> None:
+        cur = self._conn.cursor()
+        try:
+            stage2_json = json.dumps(stage2, separators=(",", ":"), ensure_ascii=False) if stage2 is not None else None
+            cur.execute(
+                """
+                UPDATE ssot_queue
+                SET status = ?,
+                    stage2_json = COALESCE(?, stage2_json),
+                    last_error = ?
+                WHERE id = ?;
+                """,
+                (status, stage2_json, last_error, int(ssot_id)),
+            )
+            self._conn.commit()
         finally:
             cur.close()
 

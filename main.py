@@ -38,6 +38,10 @@ import config
 from startup_checker import StartupChecker
 from ssot_store import SignalStore
 from signal_ingestion import SignalIngestionNormalizerProcessor
+from signal_dual_limit_entry import DualLimitEntryExecutor
+from bingx_client import BingXClient
+from lifecycle_store import LifecycleStore
+from signal_lifecycle_manager import Stage4LifecycleManager
 
 # ============================================================================
 # LOGGING SETUP
@@ -287,6 +291,12 @@ class TelegramForwarder:
         # Persistent internal Signal Store (SSoT)
         self.ssot_store: Optional[SignalStore] = None
         self.stage1: Optional[SignalIngestionNormalizerProcessor] = None
+        self._stage2_task: Optional[asyncio.Task] = None
+        self._bingx: Optional[BingXClient] = None
+        self._stage2: Optional[DualLimitEntryExecutor] = None
+        self._stage4_task: Optional[asyncio.Task] = None
+        self._stage4_store: Optional[LifecycleStore] = None
+        self._stage4: Optional[Stage4LifecycleManager] = None
     
     async def start(self):
         """Start the Telegram client and run Stage 0 checks."""
@@ -303,6 +313,39 @@ class TelegramForwarder:
             )
             logger.info(f"✅ SSoT SQLite ready: {config.SSOT_DB_PATH}")
             self.stage1 = SignalIngestionNormalizerProcessor(self.ssot_store)
+
+            # Stage 2 executor (background): only when trading is enabled and not in extract-only mode.
+            if (
+                getattr(config, "STAGE_DUAL_LIMIT_ENTRY_EXECUTION", False)
+                and getattr(config, "ENABLE_TRADING", False)
+                and not getattr(config, "EXTRACT_SIGNALS_ONLY", False)
+                and not getattr(config, "DRY_RUN", False)
+            ):
+                self._bingx = BingXClient(testnet=config.BINGX_TESTNET)
+                self._stage2 = DualLimitEntryExecutor(
+                    store=self.ssot_store,
+                    bingx=self._bingx,
+                    worker_id="stage2-main",
+                )
+                self._stage2_task = asyncio.create_task(self._stage2.run_forever())
+                logger.info("✅ Stage 2 executor started (dual-limit + merge-on-first-fill)")
+
+                # Stage 4 lifecycle manager (background): TP/SL placement + monitoring
+                if getattr(config, "STAGE4_ENABLE", False):
+                    self._stage4_store = LifecycleStore(
+                        config.SSOT_DB_PATH,
+                        enable_wal=config.SSOT_SQLITE_WAL,
+                        busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
+                    )
+                    self._stage4 = Stage4LifecycleManager(
+                        store=self._stage4_store,
+                        bingx=self._bingx,
+                        telegram_client=self.app,
+                        telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                        worker_id="stage4-main",
+                    )
+                    self._stage4_task = asyncio.create_task(self._stage4.run_forever())
+                    logger.info("✅ Stage 4 lifecycle manager started (TP/SL + monitoring)")
         
         # ====================================================================
         # STAGE 0 - INITIALIZATION & SAFETY
@@ -337,6 +380,27 @@ class TelegramForwarder:
     async def stop(self):
         """Stop the Telegram client."""
         logger.info("Stopping Telegram client...")
+        if self._stage2_task is not None:
+            self._stage2_task.cancel()
+            try:
+                await self._stage2_task
+            except Exception:
+                pass
+            self._stage2_task = None
+            self._stage2 = None
+            self._bingx = None
+
+        if self._stage4_task is not None:
+            self._stage4_task.cancel()
+            try:
+                await self._stage4_task
+            except Exception:
+                pass
+            self._stage4_task = None
+            self._stage4 = None
+        if self._stage4_store is not None:
+            self._stage4_store.close()
+            self._stage4_store = None
         await self.app.stop()
         if self.ssot_store is not None:
             self.ssot_store.close()

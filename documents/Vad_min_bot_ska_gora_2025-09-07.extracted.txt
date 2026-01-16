@@ -406,8 +406,8 @@ DefinitionsB = account balance (USDT), r = risk per trade (fraction),E = entry p
 CalculationsN = (r * B) / DeltaLev_dyn = round(min(max(N / IM_plan, 1), 50), 2)
 Classification & format
 SWING: Lev ≤ 6.00× → classified and published as SWING.
-DYNAMIC: Lev ≥ 7.50× → classified and published as DYNAMIC.
-Intermediate range: Lev in (6.00×; 7.50×) → classified to the nearest of SWING/DYNAMIC.
+DYNAMISK: Lev ≥ 7.50× → classified and published as DYNAMISK.
+Intermediate range: Lev in (6.00×; 7.50×) → classified to the nearest of SWING/DYNAMISK.
 Fallback: SL missing in source → FAST with SL = −2.00 % from entry and x10.00 leverage.
 Formatting: leverage is always shown with two decimals (xNN.NN). Percent values are shown with two decimals (e.g. −2.00 %).
 🔄 End-to-end Flow & Acknowledgement Policy (Bybit first)
@@ -421,7 +421,7 @@ Closing: final message when position has been fully closed, including PnL summar
 Mandatory template header (at the top of all templates)SENT ONLY AFTER BYBIT CONFIRMATION (retCode=0/fills).Each field in the message is populated from Bybit acknowledgement or calculation that is referenced by Bybit data. No assumption-based publishing.
 🧾 Mandatory Fields in All Templates (SSoT = Bybit)
 Identity & traceabilitybot_order_id, bybit_order_id (when available), position_id (when applicable),source_channel_name, signal_message_id, parsed_at, sent_at, env (prod/stage).
-Trading datasymbol, side, entry_price, sl_price,tp_list[] (price, % from entry, quantity/share),leverage_class ∈ {SWING, DYNAMIC, FAST}, leverage_value (two decimals),order_type, time_in_force, post_only, reduce_only, margin_mode,risk_percent (= r), wallet_balance_snapshot (= B), im_plan (= IM_plan),delta (= Delta), notional_target (= N).
+Trading datasymbol, side, entry_price, sl_price,tp_list[] (price, % from entry, quantity/share),leverage_class ∈ {SWING, DYNAMISK, FAST}, leverage_value (two decimals),order_type, time_in_force, post_only, reduce_only, margin_mode,risk_percent (= r), wallet_balance_snapshot (= B), im_plan (= IM_plan),delta (= Delta), notional_target (= N).
 Acknowledgement flags (set by acknowledgement, never assumptions)order_accepted, tp_sl_set, position_opened, position_closed,be_moved, trailing_active (when applicable).
 ✅ Validation Before Sending (HARD REQUIREMENTS)
 Must not be published to Telegram if any of the following applies:
@@ -471,7 +471,7 @@ SL is thereafter moved according to fixed pyramid and trailing rules.
 🔀 Pyramid & Leverage Rules
 All pyramid levels are recalculated from original entry.
 Ladder (example):+1.5 % → IM = 20 USDT+2.3 % → SL = BE + cost+2.4 % → leverage up to max (50×)+2.5 % → IM = 40 USDT+4 % → IM = 60 USDT+6 % → IM = 80 USDT+8.6 % → IM = 100 USDT
-Leverage classification:≤ 6× → SWING≥ 7.5× → DYNAMIC6–7.5× → classified to nearest according to § Dynamic Leverage.
+Leverage classification:≤ 6× → SWING≥ 7.5× → DYNAMISK6–7.5× → classified to nearest according to § Dynamic Leverage.
 📊 Trailing Stop
 At +6.1 % unrealized profit the trailing stop is activated.
 SL is placed 2.5 % behind the highest price (or lowest for SHORT) and follows the price continuously.
@@ -535,9 +535,9 @@ Important on conflict: Earlier decision was “Only three (3) sources”. Below 
 • All Telegram parameters for these sources (channel_id, title, username, invite_link etc.) MUST be whitelisted in SSoT (Single Source of Truth).
 • Changes to sources require the owner’s explicit approval and SSoT update in a signed release (see “🚦 Safe startup / production”).
 F) New heading: “🧪 Duplicate and Variant Control”
-Here we harmonize variants: Swedish standard SWING, DYNAMIC, FAST. (If you have older text with DYNAMIC/FIXED: replace them with DYNAMIC/FAST.)
+Here we harmonize variants: Swedish standard SWING, DYNAMISK, FAST. (If you have older text with DYNAMIC/FIXED: replace them with DYNAMISK/FAST.)
 🧪 Duplicate and Variant Control
-• Signal variants (allowed): SWING, DYNAMIC, FAST. (Synonyms: DYNAMIC → DYNAMIC, FIXED → FAST.)• Other variants are not allowed in templates or runtime.• Deduplication: as in “Duplication guard” + HASH+TTL (2h) according to SSoT.
+• Signal variants (allowed): SWING, DYNAMISK, FAST. (Synonyms: DYNAMIC → DYNAMISK, FIXED → FAST.)• Other variants are not allowed in templates or runtime.• Deduplication: as in “Duplication guard” + HASH+TTL (2h) according to SSoT.
 G) New heading: “🚦 Safe Startup / Production”
 🚦 Safe Startup / Production
 The bot may be run against mainnet only when a signed release is validated with a governance token (checked in runtime code). Otherwise the bot runs in demo mode. This rule is process and security related; no API keys or secrets are documented here.
@@ -546,14 +546,14 @@ Summary check (Telegram requirements updated correctly)
 ✅ No raw forwards: Standardization of outgoing messages added in Signal Handling.
 ✅ Template fields for Telegram (incl. {im_confirmed} from Bybit) defined.
 ✅ Source whitelist: exactly 3 sources named, Pyrogram requirement clear, linked to SSoT.
-✅ Variants locked: SWING, DYNAMIC, FAST (with synonym mapping).
+✅ Variants locked: SWING, DYNAMISK, FAST (with synonym mapping).
 ✅ Flow binding to Bybit v5 linear in Signal Handling.
 ✅ Governance gate for production added.
 Sync points to mirror fully in the governing documents
 Dual-Limit & Merging with Δ and pᵣ formula; postOnly=true, GTC, 50/50; maker protection (tick adjustment)
 What my bot must do 2025-09-07
 .
-Dynamic leverage (the formula, clamping, classification SWING ≤ 6.00× / DYNAMIC ≥ 7.50× / FAST fallback when SL is missing = −2.00 %, x10.00)
+Dynamic leverage (the formula, clamping, classification SWING ≤ 6.00× / DYNAMISK ≥ 7.50× / FAST fallback when SL is missing = −2.00 %, x10.00)
 What my bot must do 2025-09-07
 .
 Bybit-first flow and the mandatory template header

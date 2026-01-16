@@ -450,9 +450,10 @@ class BingXClient:
         if leverage <= Decimal("6.00"):
             leverage_class = "SWING"
         elif leverage >= Decimal("7.50"):
-            leverage_class = "DYNAMIC"
+            leverage_class = "DYNAMISK"
         else:
-            leverage_class = "SWING" if leverage <= Decimal("6.75") else "DYNAMIC"
+            # Nearest-threshold classification in (6.00, 7.50), tie-break -> SWING (safer).
+            leverage_class = "SWING" if leverage <= Decimal("6.75") else "DYNAMISK"
         
         # Calculate quantity
         quantity = notional_target / entry_price
@@ -461,6 +462,7 @@ class BingXClient:
             'notional_target': notional_target,
             'delta': delta,
             'leverage': leverage,
+            'leverage_display': f"x{leverage:.2f}",
             'leverage_class': leverage_class,
             'quantity': quantity,
             'risk_percent': self.risk_per_trade,
@@ -468,10 +470,13 @@ class BingXClient:
             'im_plan': self.im_plan
         }
     
-    def calculate_fast_fallback(self, entry_price: Decimal) -> Dict:
+    def calculate_fast_fallback(self, entry_price: Decimal, side: str) -> Dict:
         """
         Calculate FAST fallback when SL is missing.
-        SL = -2.00% from entry, leverage = x10.00
+        Deterministic fallback:
+        - LONG: SL = -2.00% from entry
+        - SHORT: SL = +2.00% from entry
+        - leverage = x10.00 (fixed)
         
         Args:
             entry_price: Entry price
@@ -479,14 +484,29 @@ class BingXClient:
         Returns:
             Dictionary with SL price and leverage info
         """
-        sl_price = entry_price * Decimal("0.98")  # -2% from entry
+        s = (side or "").upper()
+        if s == "SHORT":
+            sl_price = entry_price * Decimal("1.02")  # +2% from entry
+        else:
+            # Default to LONG behavior if side is missing/unknown.
+            sl_price = entry_price * Decimal("0.98")  # -2% from entry
+
         leverage = Decimal("10.00")
+        delta = Decimal("0.02")  # 2%
+        notional_target = self.im_plan * leverage
+        quantity = notional_target / entry_price
         
         return {
             'sl_price': sl_price,
+            'notional_target': notional_target,
             'leverage': leverage,
+            'leverage_display': f"x{leverage:.2f}",
             'leverage_class': 'FAST',
-            'delta': Decimal("0.02")  # 2%
+            'delta': delta,
+            'quantity': quantity,
+            'risk_percent': self.risk_per_trade,
+            'wallet_balance': self.account_balance,
+            'im_plan': self.im_plan,
         }
     
     # ============================================================================
@@ -509,6 +529,66 @@ class BingXClient:
         p1 = self._quantize_price(target_entry - spread, tick_size)
         p2 = self._quantize_price(target_entry + spread, tick_size)
         return p1, p2
+
+    def ensure_maker_safe_prices(
+        self,
+        *,
+        side: str,
+        p1: Decimal,
+        p2: Decimal,
+        ltp: Decimal,
+        tick_size: Decimal,
+        max_shifts: int = 50,
+    ) -> Tuple[Decimal, Decimal]:
+        """
+        Enforce Stage 2 maker-safety rule (per spec):
+        - LONG/BUY: both prices must be below LTP
+        - SHORT/SELL: both prices must be above LTP
+
+        If a price violates the constraint, shift it by 1 tick away from LTP
+        until safe (bounded by max_shifts).
+        """
+        if tick_size <= 0:
+            return p1, p2
+
+        s = (side or "").upper()
+        if s not in {"BUY", "SELL"}:
+            return p1, p2
+
+        # If LTP missing/0, don't attempt shifting.
+        if ltp is None or ltp <= 0:
+            return p1, p2
+
+        p1_adj = Decimal(p1)
+        p2_adj = Decimal(p2)
+
+        def is_safe_buy(p: Decimal) -> bool:
+            return p < ltp
+
+        def is_safe_sell(p: Decimal) -> bool:
+            return p > ltp
+
+        for _ in range(int(max_shifts)):
+            if s == "BUY":
+                ok1 = is_safe_buy(p1_adj)
+                ok2 = is_safe_buy(p2_adj)
+                if ok1 and ok2:
+                    break
+                if not ok1:
+                    p1_adj = self._quantize_price(p1_adj - tick_size, tick_size)
+                if not ok2:
+                    p2_adj = self._quantize_price(p2_adj - tick_size, tick_size)
+            else:
+                ok1 = is_safe_sell(p1_adj)
+                ok2 = is_safe_sell(p2_adj)
+                if ok1 and ok2:
+                    break
+                if not ok1:
+                    p1_adj = self._quantize_price(p1_adj + tick_size, tick_size)
+                if not ok2:
+                    p2_adj = self._quantize_price(p2_adj + tick_size, tick_size)
+
+        return p1_adj, p2_adj
     
     def place_dual_limit_orders(
         self,
@@ -543,6 +623,17 @@ class BingXClient:
         
         # Calculate two prices
         p1, p2 = self.calculate_dual_limit_prices(target_entry, spread, tick_size)
+
+        # Enforce maker-safety relative to current LTP (per spec)
+        ltp = self.get_current_price(formatted_symbol)
+        p1, p2 = self.ensure_maker_safe_prices(
+            side=side,
+            p1=p1,
+            p2=p2,
+            ltp=ltp,
+            tick_size=tick_size,
+            max_shifts=50,
+        )
         
         # Split quantity 50/50
         q1 = self._quantize_quantity(total_quantity / 2, qty_step, min_qty)
@@ -558,7 +649,7 @@ class BingXClient:
         order1 = self.place_limit_order(
             symbol=formatted_symbol,
             side=side,
-            price=p1 if side == "BUY" else p2,
+            price=p1,
             quantity=q1,
             leverage=leverage,
             post_only=True,
@@ -572,7 +663,7 @@ class BingXClient:
         order2 = self.place_limit_order(
             symbol=formatted_symbol,
             side=side,
-            price=p2 if side == "BUY" else p1,
+            price=p2,
             quantity=q2,
             leverage=leverage,
             post_only=True,
@@ -798,6 +889,121 @@ class BingXClient:
         except Exception as e:
             logger.error(f"Failed to cancel order: {e}")
             return False
+
+    def get_open_orders(self, symbol: Optional[str] = None) -> List[Dict]:
+        """
+        Get open orders (REST snapshot).
+
+        Note: BingX OpenAPI endpoints vary by account/product; this method is best-effort and
+        is used for reconciliation only. Stage 4 primarily tracks known order_ids.
+        """
+        candidates = [
+            "/openApi/swap/v2/trade/openOrders",
+            "/openApi/swap/v2/trade/openOrder",
+        ]
+        params: Dict[str, str] = {}
+        if symbol:
+            params["symbol"] = self._format_symbol(symbol)
+        for ep in candidates:
+            try:
+                resp = self._send_request("GET", ep, params=params, signed=True)
+                if resp.get("code") == 0:
+                    data = resp.get("data", {})
+                    # Try common shapes
+                    if isinstance(data, list):
+                        return data
+                    if isinstance(data, dict):
+                        if isinstance(data.get("orders"), list):
+                            return data["orders"]
+                        if isinstance(data.get("order"), list):
+                            return data["order"]
+                        if isinstance(data.get("openOrders"), list):
+                            return data["openOrders"]
+                # If endpoint exists but returns nonzero, try next candidate.
+            except Exception:
+                continue
+        return []
+
+    def get_positions(self, symbol: Optional[str] = None) -> List[Dict]:
+        """
+        Get current positions (REST snapshot) for reconciliation.
+
+        This is a best-effort wrapper around likely BingX swap endpoints.
+        """
+        candidates = [
+            "/openApi/swap/v2/user/positions",
+            "/openApi/swap/v2/user/position",
+        ]
+        params: Dict[str, str] = {}
+        if symbol:
+            params["symbol"] = self._format_symbol(symbol)
+        for ep in candidates:
+            try:
+                resp = self._send_request("GET", ep, params=params, signed=True)
+                if resp.get("code") == 0:
+                    data = resp.get("data", {})
+                    if isinstance(data, list):
+                        return data
+                    if isinstance(data, dict):
+                        if isinstance(data.get("positions"), list):
+                            return data["positions"]
+                        if isinstance(data.get("position"), list):
+                            return data["position"]
+                        if isinstance(data.get("position"), dict):
+                            return [data["position"]]
+                # If endpoint exists but returns nonzero, try next candidate.
+            except Exception:
+                continue
+        return []
+
+    def place_stop_market_order(
+        self,
+        *,
+        symbol: str,
+        side: str,
+        stop_price: Decimal,
+        quantity: Decimal,
+        reduce_only: bool = True,
+    ) -> Dict:
+        """
+        Place a STOP_MARKET order (best-effort) for Stop Loss protection.
+
+        BingX parameters can differ by product/version; if the exchange rejects this order,
+        the caller should fall back to a reduce-only LIMIT as an emergency guardrail.
+        """
+        try:
+            params: Dict[str, str] = {
+                "symbol": self._format_symbol(symbol),
+                "side": side,
+                "positionSide": "LONG" if side == "SELL" else "SHORT",
+                "type": "STOP_MARKET",
+                "quantity": str(quantity),
+                "stopPrice": str(stop_price),
+                "timeInForce": "GTC",
+            }
+            if reduce_only:
+                params["reduceOnly"] = "true"
+
+            resp = self._send_request(
+                "POST",
+                "/openApi/swap/v2/trade/order",
+                params=params,
+                signed=True,
+            )
+            if resp.get("code") == 0:
+                data = resp.get("data", {}) or {}
+                order_id = (data.get("order") or {}).get("orderId") or data.get("orderId")
+                return {"orderId": order_id, "status": "ACCEPTED", "retCode": 0, **(data if isinstance(data, dict) else {})}
+
+            return {
+                "orderId": None,
+                "status": "FAILED",
+                "retCode": resp.get("code"),
+                "error": resp.get("msg", "Unknown error"),
+                "raw": resp,
+            }
+        except Exception as e:
+            return {"orderId": None, "status": "ERROR", "error": str(e)}
     
     # ============================================================================
     # WEBSOCKET CONNECTION & HEARTBEAT

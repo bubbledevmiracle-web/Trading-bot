@@ -3,7 +3,7 @@
 """
 Trading Bot Integration
 ========================
-Integrates Telegram signal detection with ByBit trading execution.
+Integrates Telegram signal detection with BingX trading execution.
 
 Author: Trading Bot Project
 Date: 2026-01-08
@@ -86,8 +86,8 @@ class TradingBotIntegration:
         order_info = order_result['order_info']
         position_data = order_info['position_data']
         
-        # Format leverage with 2 decimals
-        leverage_str = f"x{position_data['leverage']:.2f}"
+        # Format leverage for Telegram: xNN.NN (prefer canonical preformatted value)
+        leverage_str = position_data.get('leverage_display') or f"x{position_data['leverage']:.2f}"
         
         # Format template according to requirements
         template = (

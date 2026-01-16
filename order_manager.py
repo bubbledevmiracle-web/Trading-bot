@@ -61,7 +61,7 @@ class OrderManager:
         if not symbol_info:
             return {
                 'success': False,
-                'error': f'Symbol {symbol} not found on ByBit',
+                'error': f'Symbol {symbol} not found on BingX',
                 'bot_order_id': bot_order_id
             }
         
@@ -83,20 +83,17 @@ class OrderManager:
         
         # Handle stop loss
         sl_price = parsed_signal.get('sl_price')
+        direction = parsed_signal.get('direction')  # LONG | SHORT (already normalized upstream)
         if not sl_price:
-            # FAST fallback: -2% from entry, x10 leverage
-            fast_fallback = self.client.calculate_fast_fallback(target_entry)
-            sl_price = fast_fallback['sl_price']
-            leverage_class = 'FAST'
-            leverage = fast_fallback['leverage']
+            # FAST fallback (deterministic): side-correct SL + fixed x10 leverage
+            position_data = self.client.calculate_fast_fallback(target_entry, direction)
+            sl_price = position_data['sl_price']
         else:
-            # Calculate position size and leverage
+            # Dynamic position sizing & leverage
             position_data = self.client.calculate_position_size(target_entry, sl_price)
-            leverage = position_data['leverage']
-            leverage_class = position_data['leverage_class']
-        
-        # Calculate position size
-        position_data = self.client.calculate_position_size(target_entry, sl_price)
+
+        leverage = position_data['leverage']
+        leverage_class = position_data['leverage_class']
         total_quantity = position_data['quantity']
         
         # Get symbol info for quantization
@@ -106,6 +103,8 @@ class OrderManager:
         
         # Quantize quantity
         quantity = self.client._quantize_quantity(total_quantity, qty_step, min_qty)
+        # Keep SSoT-consistent: store the exact quantity we actually place.
+        position_data['quantity'] = quantity
         
         # Place dual-limit orders
         side = "BUY" if parsed_signal['direction'] == "LONG" else "SELL"
