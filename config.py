@@ -94,8 +94,10 @@ DUPLICATE_TTL_HOURS = 2
 # These defaults ensure deterministic behavior instead of rejecting otherwise valid signals.
 DEFAULT_SIGNAL_TYPE_WHEN_MISSING = "SWING"
 DEFAULT_SIGNAL_TYPE_BY_CHANNEL = {
-    # SMART_CRYPTO "OPPORTUNITY DETECTED" templates are typically quick-move oriented.
-    "SMART_CRYPTO": "FAST",
+    # IMPORTANT: FAST is reserved for the SL-missing fallback (auto-SL -2.00% and fixed x10.00 leverage).
+    # If a channel doesn't include explicit type/leverage in the text, default to SWING and let Stage 2
+    # compute dynamic leverage + classification deterministically from (B, r, IM_plan, E, S).
+    "SMART_CRYPTO": "SWING",
 }
 
 # Signal Extraction Logging
@@ -202,6 +204,59 @@ STAGE4_TP_SPLIT_MODE = "EQUAL"
 
 # After TP1 gets any confirmed fill, move SL to Break-Even (avg_entry)
 STAGE4_MOVE_SL_TO_BE_AFTER_TP1 = True
+
+# ============================================================================
+# STAGE 5 - HEDGE & RE-ENTRY (BINGX)
+# ============================================================================
+
+# Enable Stage 5 (hedge on -2% adverse move vs original entry, then dual-limit re-entry)
+STAGE5_ENABLE = True
+
+# Polling interval for Stage 5 REST-based monitoring
+STAGE5_POLL_INTERVAL_SECONDS = 3
+
+# Adverse move threshold (original-entry anchored)
+STAGE5_ADVERSE_MOVE_PCT = Decimal("0.02")
+
+# Max dual-limit re-entry attempts after hedge resolution (then lock until new external signal)
+STAGE5_MAX_REENTRY_ATTEMPTS = 3
+
+# ============================================================================
+# STAGE 6 - REPORTING & ERROR HANDLING (TELEMETRY SSOT)
+# ============================================================================
+
+# Enable Stage 6 background services (watchdog + reporting)
+STAGE6_ENABLE = True
+
+# Telemetry SSOT (append-only JSONL)
+STAGE6_TELEMETRY_JSONL_PATH = LOG_DIR / "telemetry.jsonl"
+
+# Capacity limit
+STAGE6_MAX_ACTIVE_TRADES = 100
+STAGE6_WATCHDOG_POLL_INTERVAL_SECONDS = 10
+
+# Reporting (scheduler)
+STAGE6_REPORTS_ENABLE = True
+# Local-time scheduling (TIMEZONE config is used)
+STAGE6_REPORT_DAILY_AT_LOCAL_TIME = "23:59"     # HH:MM
+STAGE6_REPORT_WEEKLY_DAY = "SUN"                # MON..SUN
+STAGE6_REPORT_WEEKLY_AT_LOCAL_TIME = "23:59"    # HH:MM
+STAGE6_REPORT_SEND_TO_TELEGRAM = True
+
+# Safety: never log secrets/signature details in normal INFO logs
+BINGX_LOG_SIGNATURE_DETAILS = False
+
+# ============================================================================
+# STAGE 7 - CONTINUOUS OPERATION & CLEANUP (MAINTENANCE LAYER)
+# ============================================================================
+
+# Enable Stage 7 maintenance jobs (cleanup + reconcile/restore)
+STAGE7_ENABLE = True
+
+# Timers (background jobs)
+STAGE7_RECONCILE_INTERVAL_SECONDS = 120          # restore/reconcile protections
+STAGE7_CLEANUP_SHORT_INTERVAL_SECONDS = 900      # 24h stale entry cleanup scan
+STAGE7_CLEANUP_LONG_INTERVAL_SECONDS = 6 * 3600  # 6d stale cleanup scan
 
 # ============================================================================
 # HELPER FUNCTIONS

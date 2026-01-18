@@ -187,11 +187,12 @@ def _entry_bucket(entry: Decimal) -> int:
 
 
 class SignalIngestionNormalizerProcessor:
-    def __init__(self, store: SignalStore):
+    def __init__(self, store: SignalStore, *, capacity_guard=None):
         self.store = store
         self.parser = SignalParser()
         self.bingx = BingXClient(testnet=config.BINGX_TESTNET)
         self._symbol_info_cache: dict[str, dict] = {}
+        self.capacity_guard = capacity_guard
 
     def _get_symbol_info(self, symbol_usdt: str) -> Optional[dict]:
         # Cache within process lifetime for speed/determinism
@@ -215,6 +216,20 @@ class SignalIngestionNormalizerProcessor:
         raw_text = (raw_text or "").strip()
         if not raw_text:
             return Stage1Decision(status="INVALID", reason="Empty message text", details={})
+
+        # Stage 6 capacity guard (temporary safety block)
+        if self.capacity_guard is not None:
+            try:
+                allowed, info = self.capacity_guard.can_accept_signal()
+            except Exception:
+                allowed, info = True, {}
+            if not allowed:
+                return Stage1Decision(
+                    status="BLOCKED",
+                    reason="Capacity block active",
+                    details={"guard": info},
+                    stored_signal_id=None,
+                )
 
         # 2) Validate format via strict parsing
         parsed = self.parser.parse_signal(raw_text)
@@ -328,6 +343,13 @@ class SignalIngestionNormalizerProcessor:
                     },
                 },
             )
+
+        # Stage 5 hard-stop unlock: a new external Telegram signal unlocks (symbol, side).
+        # This is deterministic and restart-safe (stored in same SQLite DB).
+        try:
+            self.store.clear_stage5_lock(symbol=normalized.symbol, side=normalized.side)
+        except Exception:
+            pass
 
         # 6) Add to SSoT queue (SQLite) ONLY after acceptance
         stored_id = self.store.insert_accepted_signal(normalized=normalized, dedup_hash=dedup["dedup_hash"])

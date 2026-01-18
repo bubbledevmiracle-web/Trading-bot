@@ -39,6 +39,8 @@ from pyrogram.errors import (
 import config
 from bingx_client import BingXClient
 from ssot_store import SignalStore
+from stage6_telemetry import TelemetryLogger, TelemetryCorrelation
+from stage6_telegram import send_telegram_with_telemetry
 
 logger = logging.getLogger(__name__)
 
@@ -846,7 +848,7 @@ class StartupChecker:
         
         return success, verification_report
     
-    async def send_startup_notification(self, telegram_client: Client, success: bool) -> bool:
+    async def send_startup_notification(self, telegram_client: Client, success: bool, *, telemetry: Optional[TelemetryLogger] = None) -> bool:
         """
         Send startup notification to personal channel.
         
@@ -862,11 +864,17 @@ class StartupChecker:
                 message = self.prepare_startup_message()
             else:
                 message = self.prepare_error_message()
-            
-            await telegram_client.send_message(
-                chat_id=config.PERSONAL_CHANNEL_ID,
-                text=message
-            )
+
+            if telemetry is not None:
+                await send_telegram_with_telemetry(
+                    telegram_client=telegram_client,
+                    chat_id=config.PERSONAL_CHANNEL_ID,
+                    text=message,
+                    telemetry=telemetry,
+                    correlation=TelemetryCorrelation(bot_order_id="stage0-startup"),
+                )
+            else:
+                await telegram_client.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=message)
             
             logger.info("✅ Startup notification sent to personal channel")
             return True

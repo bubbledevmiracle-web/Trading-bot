@@ -30,7 +30,7 @@ from decimal import Decimal
 from typing import Optional, Dict, List
 
 import config
-from bingx_client import BingXClient
+from bingx_client import BingXClient, _safe_decimal
 from ssot_store import SignalStore, QueuedSignal
 
 logger = logging.getLogger(__name__)
@@ -129,9 +129,19 @@ class DualLimitEntryExecutor:
                 details={"stage": "SYMBOL_INFO", "reason": f"Symbol not found: {symbol}", "ts": _utc_now_iso()},
             )
 
-        tick_size = Decimal(str(symbol_info.get("tickSize", "0")))
-        qty_step = Decimal(str(symbol_info.get("lotSizeFilter", {}).get("qtyStep", "0")))
-        min_qty = Decimal(str(symbol_info.get("lotSizeFilter", {}).get("minQty", "0.001")))
+        lot = symbol_info.get("lotSizeFilter", {}) or {}
+
+        # Guard against malformed exchange metadata (e.g., None/"" -> Decimal ConversionSyntax)
+        tick_size = _safe_decimal(symbol_info.get("tickSize"), Decimal("0"))
+        qty_step = _safe_decimal(lot.get("qtyStep"), Decimal("0"))
+        min_qty = _safe_decimal(lot.get("minQty"), Decimal("0.001"))
+        if min_qty <= 0:
+            logger.warning(
+                "Invalid minQty from exchange metadata (symbol=%s, minQty=%r). Falling back to 0.001",
+                symbol,
+                lot.get("minQty"),
+            )
+            min_qty = Decimal("0.001")
 
         # Stage 1 sizing -> Stage 2 quantities (Q)
         pos = await asyncio.to_thread(self.bingx.calculate_position_size, Em, SL)

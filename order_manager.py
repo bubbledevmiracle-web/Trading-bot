@@ -19,7 +19,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional
 from uuid import uuid4
 
-from bingx_client import BingXClient
+from bingx_client import BingXClient, _safe_decimal
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +97,12 @@ class OrderManager:
         total_quantity = position_data['quantity']
         
         # Get symbol info for quantization
-        tick_size = Decimal(str(symbol_info.get('tickSize', '0.0001')))
-        qty_step = Decimal(str(symbol_info.get('lotSizeFilter', {}).get('qtyStep', '0.001')))
-        min_qty = Decimal(str(symbol_info.get('lotSizeFilter', {}).get('minQty', '0.001')))
+        lot = symbol_info.get("lotSizeFilter", {}) or {}
+        tick_size = _safe_decimal(symbol_info.get("tickSize"), Decimal("0.0001"))
+        qty_step = _safe_decimal(lot.get("qtyStep"), Decimal("0.001"))
+        min_qty = _safe_decimal(lot.get("minQty"), Decimal("0.001"))
+        if min_qty <= 0:
+            min_qty = Decimal("0.001")
         
         # Quantize quantity
         quantity = self.client._quantize_quantity(total_quantity, qty_step, min_qty)

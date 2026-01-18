@@ -42,6 +42,12 @@ from signal_dual_limit_entry import DualLimitEntryExecutor
 from bingx_client import BingXClient
 from lifecycle_store import LifecycleStore
 from signal_lifecycle_manager import Stage4LifecycleManager
+from signal_hedge_reentry_manager import Stage5HedgeReentryManager
+from signal_pyramid_manager import PyramidManager
+from stage6_registry import create_stage6_services, Stage6Services
+from stage6_telemetry import TelemetryCorrelation
+from stage6_telegram import send_telegram_with_telemetry
+from stage7_maintenance import Stage7Maintenance
 
 # ============================================================================
 # LOGGING SETUP
@@ -297,6 +303,17 @@ class TelegramForwarder:
         self._stage4_task: Optional[asyncio.Task] = None
         self._stage4_store: Optional[LifecycleStore] = None
         self._stage4: Optional[Stage4LifecycleManager] = None
+        self._stage5_task: Optional[asyncio.Task] = None
+        self._stage5: Optional[Stage5HedgeReentryManager] = None
+        self._pyramid_task: Optional[asyncio.Task] = None
+        self._pyramid: Optional[PyramidManager] = None
+
+        # Stage 6 services
+        self._stage6: Optional[Stage6Services] = None
+
+        # Stage 7 maintenance
+        self._stage7_task: Optional[asyncio.Task] = None
+        self._stage7: Optional[Stage7Maintenance] = None
     
     async def start(self):
         """Start the Telegram client and run Stage 0 checks."""
@@ -312,7 +329,32 @@ class TelegramForwarder:
                 busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
             )
             logger.info(f"✅ SSoT SQLite ready: {config.SSOT_DB_PATH}")
-            self.stage1 = SignalIngestionNormalizerProcessor(self.ssot_store)
+
+            # Stage 4 lifecycle store is also used by Stage 6 capacity watchdog (safe even if Stage 4 loop is disabled).
+            if (
+                getattr(config, "STAGE4_ENABLE", False)
+                or getattr(config, "STAGE5_ENABLE", False)
+                or getattr(config, "STAGE6_ENABLE", False)
+            ):
+                self._stage4_store = LifecycleStore(
+                    config.SSOT_DB_PATH,
+                    enable_wal=config.SSOT_SQLITE_WAL,
+                    busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
+                )
+
+            # Stage 6 registry (telemetry + watchdog + capacity guard)
+            if getattr(config, "STAGE6_ENABLE", True):
+                self._stage6 = create_stage6_services(
+                    ssot_store=self.ssot_store,
+                    lifecycle_store=self._stage4_store,
+                    telegram_client=self.app,
+                    telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                )
+
+            self.stage1 = SignalIngestionNormalizerProcessor(
+                self.ssot_store,
+                capacity_guard=(self._stage6.capacity_guard if self._stage6 is not None else None),
+            )
 
             # Stage 2 executor (background): only when trading is enabled and not in extract-only mode.
             if (
@@ -322,6 +364,8 @@ class TelegramForwarder:
                 and not getattr(config, "DRY_RUN", False)
             ):
                 self._bingx = BingXClient(testnet=config.BINGX_TESTNET)
+                if self._stage6 is not None:
+                    self._bingx.set_telemetry(self._stage6.telemetry)
                 self._stage2 = DualLimitEntryExecutor(
                     store=self.ssot_store,
                     bingx=self._bingx,
@@ -332,20 +376,56 @@ class TelegramForwarder:
 
                 # Stage 4 lifecycle manager (background): TP/SL placement + monitoring
                 if getattr(config, "STAGE4_ENABLE", False):
-                    self._stage4_store = LifecycleStore(
-                        config.SSOT_DB_PATH,
-                        enable_wal=config.SSOT_SQLITE_WAL,
-                        busy_timeout_ms=config.SSOT_SQLITE_BUSY_TIMEOUT_MS,
-                    )
                     self._stage4 = Stage4LifecycleManager(
                         store=self._stage4_store,
                         bingx=self._bingx,
                         telegram_client=self.app,
                         telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                        telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
                         worker_id="stage4-main",
                     )
                     self._stage4_task = asyncio.create_task(self._stage4.run_forever())
                     logger.info("✅ Stage 4 lifecycle manager started (TP/SL + monitoring)")
+
+                    # Stage 5 hedge & re-entry manager (background)
+                    if getattr(config, "STAGE5_ENABLE", False) and self._stage2 is not None:
+                        self._stage5 = Stage5HedgeReentryManager(
+                            store=self._stage4_store,
+                            bingx=self._bingx,
+                            stage2=self._stage2,
+                            stage4_manager=self._stage4,
+                            telegram_client=self.app,
+                            telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                            telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
+                            worker_id="stage5-main",
+                        )
+                        self._stage5_task = asyncio.create_task(self._stage5.run_forever())
+                        logger.info("✅ Stage 5 hedge & re-entry manager started")
+                
+                # Stage 4.5: Pyramid Manager (background)
+                if getattr(config, "ENABLE_PYRAMID", True) and self._stage4_store is not None and self._bingx is not None:
+                    self._pyramid = PyramidManager(
+                        bingx=self._bingx,
+                        lifecycle_store=self._stage4_store,
+                        worker_id="pyramid-manager",
+                    )
+                    self._pyramid_task = asyncio.create_task(self._pyramid.run_forever())
+                    logger.info("✅ Pyramid manager started")
+
+                # Stage 7 maintenance (background): cleanup + restore/reconcile.
+                if getattr(config, "STAGE7_ENABLE", True) and self._stage4_store is not None and self._bingx is not None:
+                    self._stage7 = Stage7Maintenance(
+                        bingx=self._bingx,
+                        ssot_store=self.ssot_store,
+                        lifecycle_store=self._stage4_store,
+                        telegram_client=self.app,
+                        telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                        telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
+                        stage4_manager=self._stage4,
+                        worker_id="stage7-maintenance",
+                    )
+                    self._stage7_task = asyncio.create_task(self._stage7.run_forever())
+                    logger.info("✅ Stage 7 maintenance started (cleanup + reconcile/restore)")
         
         # ====================================================================
         # STAGE 0 - INITIALIZATION & SAFETY
@@ -358,7 +438,11 @@ class TelegramForwarder:
         stage0_success, stage0_report = await self.startup_checker.verify_all(self.app)
         
         # Send startup notification to private channel
-        await self.startup_checker.send_startup_notification(self.app, stage0_success)
+        await self.startup_checker.send_startup_notification(
+            self.app,
+            stage0_success,
+            telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
+        )
         
         if not stage0_success and not config.DEMO_MODE:
             logger.error("❌ Stage 0 failed and DEMO mode not allowed - exiting")
@@ -398,9 +482,49 @@ class TelegramForwarder:
                 pass
             self._stage4_task = None
             self._stage4 = None
+        if self._stage5_task is not None:
+            self._stage5_task.cancel()
+            try:
+                await self._stage5_task
+            except Exception:
+                pass
+            self._stage5_task = None
+            self._stage5 = None
+        
+        if self._pyramid_task is not None:
+            self._pyramid_task.cancel()
+            try:
+                await self._pyramid_task
+            except Exception:
+                pass
+            self._pyramid_task = None
+            self._pyramid = None
+
+        if self._stage7_task is not None:
+            self._stage7_task.cancel()
+            try:
+                await self._stage7_task
+            except Exception:
+                pass
+            self._stage7_task = None
+            self._stage7 = None
         if self._stage4_store is not None:
             self._stage4_store.close()
             self._stage4_store = None
+        if self._stage6 is not None and self._stage6.watchdog_task is not None:
+            self._stage6.watchdog_task.cancel()
+            try:
+                await self._stage6.watchdog_task
+            except Exception:
+                pass
+            self._stage6.watchdog_task = None
+        if self._stage6 is not None and self._stage6.report_task is not None:
+            self._stage6.report_task.cancel()
+            try:
+                await self._stage6.report_task
+            except Exception:
+                pass
+            self._stage6.report_task = None
         await self.app.stop()
         if self.ssot_store is not None:
             self.ssot_store.close()
@@ -487,38 +611,52 @@ class TelegramForwarder:
                     norm = (decision.details or {}).get("normalized", {})
                     ttl = getattr(config, "DUPLICATE_TTL_HOURS", 2)
                     min_diff = dedup.get("min_diff")
-                    await self.app.send_message(
-                        chat_id=config.PERSONAL_CHANNEL_ID,
-                        text=(
-                            "SIGNAL BLOCKERAD\n"
-                            f"Orsak: {decision.reason}\n"
-                            f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-                            f"Gäller i: {ttl} h\n"
-                            f"Avvikelse (min): {min_diff}\n"
-                            f"Källa: {channel_name}\n"
-                            f"Symbol: {norm.get('symbol')}\n"
-                            f"Side: {norm.get('side')}\n"
-                            f"Entry: {norm.get('entry_price')}\n"
-                            f"SL: {norm.get('sl_price')}\n"
-                            f"TP: {norm.get('tp_prices')}\n"
-                            f"Message ID: {message.id}\n"
-                        ),
+                    txt = (
+                        "SIGNAL BLOCKERAD\n"
+                        f"Orsak: {decision.reason}\n"
+                        f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                        f"Gäller i: {ttl} h\n"
+                        f"Avvikelse (min): {min_diff}\n"
+                        f"Källa: {channel_name}\n"
+                        f"Symbol: {norm.get('symbol')}\n"
+                        f"Side: {norm.get('side')}\n"
+                        f"Entry: {norm.get('entry_price')}\n"
+                        f"SL: {norm.get('sl_price')}\n"
+                        f"TP: {norm.get('tp_prices')}\n"
+                        f"Message ID: {message.id}\n"
                     )
+                    if self._stage6 is not None:
+                        await send_telegram_with_telemetry(
+                            telegram_client=self.app,
+                            chat_id=config.PERSONAL_CHANNEL_ID,
+                            text=txt,
+                            telemetry=self._stage6.telemetry,
+                            correlation=TelemetryCorrelation(bot_order_id="stage1-blocked", telegram_chat_id=config.PERSONAL_CHANNEL_ID),
+                        )
+                    else:
+                        await self.app.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=txt)
                 except Exception as e:
                     logger.error(f"Failed to send SIGNAL BLOCKERAD notification: {e}")
             else:
                 logger.warning(f"❌ SIGNAL OGILTIG: {decision.reason}")
                 try:
-                    await self.app.send_message(
-                        chat_id=config.PERSONAL_CHANNEL_ID,
-                        text=(
-                            "SIGNAL OGILTIG\n"
-                            f"Orsak: {decision.reason}\n"
-                            f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-                            f"Källa: {channel_name}\n"
-                            f"Message ID: {message.id}\n"
-                        ),
+                    txt = (
+                        "SIGNAL OGILTIG\n"
+                        f"Orsak: {decision.reason}\n"
+                        f"Tid: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                        f"Källa: {channel_name}\n"
+                        f"Message ID: {message.id}\n"
                     )
+                    if self._stage6 is not None:
+                        await send_telegram_with_telemetry(
+                            telegram_client=self.app,
+                            chat_id=config.PERSONAL_CHANNEL_ID,
+                            text=txt,
+                            telemetry=self._stage6.telemetry,
+                            correlation=TelemetryCorrelation(bot_order_id="stage1-invalid", telegram_chat_id=config.PERSONAL_CHANNEL_ID),
+                        )
+                    else:
+                        await self.app.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=txt)
                 except Exception as e:
                     logger.error(f"Failed to send SIGNAL OGILTIG notification: {e}")
             

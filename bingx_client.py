@@ -80,7 +80,7 @@ ACCOUNT_BALANCE_BASELINE = Decimal("402.10")  # USDT
 RISK_PER_TRADE = Decimal("0.02")  # 2% per trade
 INITIAL_MARGIN_PLAN = Decimal("20.00")  # USDT per trade
 MAX_LEVERAGE = Decimal("50.00")
-MIN_LEVERAGE = Decimal("1.00")
+MIN_LEVERAGE = Decimal("6.00")  # Minimum 6x leverage required
 
 # Order Cleanup Timeouts
 TIMEOUT_SHORT = timedelta(hours=24)  # Hanging opening orders
@@ -121,8 +121,17 @@ class BingXClient:
         self.account_balance = ACCOUNT_BALANCE_BASELINE
         self.risk_per_trade = RISK_PER_TRADE
         self.im_plan = INITIAL_MARGIN_PLAN
+
+        # Stage 6 telemetry (optional; injected by registry)
+        self.telemetry = None
         
         logger.info(f"BingX client initialized (testnet={testnet})")
+
+    def set_telemetry(self, telemetry) -> None:
+        """
+        Inject Stage 6 telemetry logger (best-effort, optional).
+        """
+        self.telemetry = telemetry
     
     def _generate_signature(self, query_string: str) -> str:
         """
@@ -184,13 +193,19 @@ class BingXClient:
             params = dict(sorted_params)
             params['signature'] = signature
             
-            # ALWAYS log signature details for debugging
-            logger.info(f"🔐 BingX Signature:")
-            logger.info(f"   Timestamp: {timestamp}")
-            logger.info(f"   Query string: {query_string}")
-            logger.info(f"   API Key (first 20): {self.api_key[:20]}...")
-            logger.info(f"   Secret (first 20): {self.secret_key[:20]}...")
-            logger.info(f"   Signature: {signature}")
+            # IMPORTANT: never log secrets/signatures in INFO by default.
+            # Enable explicit debugging via config.BINGX_LOG_SIGNATURE_DETAILS.
+            try:
+                import config as _cfg
+                log_sig = bool(getattr(_cfg, "BINGX_LOG_SIGNATURE_DETAILS", False))
+            except Exception:
+                log_sig = False
+            if log_sig:
+                logger.info("🔐 BingX Signature Debug:")
+                logger.info("   Timestamp: %s", timestamp)
+                logger.info("   Query string: %s", query_string)
+                logger.info("   API Key (first 8): %s...", (self.api_key or "")[:8])
+                logger.info("   Signature: %s", signature)
         
         try:
             if method == 'GET':
@@ -203,11 +218,51 @@ class BingXClient:
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
+            # Stage 6: log REST request/response (best-effort, redact secrets later in telemetry sink)
+            try:
+                if self.telemetry is not None:
+                    order_id = None
+                    try:
+                        order_id = (params or {}).get("orderId")
+                    except Exception:
+                        order_id = None
+                    self.telemetry.emit(
+                        event_type="BINGX_REST_CALL",
+                        level="INFO",
+                        subsystem="BINGX",
+                        message="REST call",
+                        correlation={"bingx_order_id": str(order_id) if order_id else None},
+                        payload={
+                            "http": {"method": method, "url": url, "status_code": int(getattr(response, "status_code", 0))},
+                            "api": {"endpoint": endpoint, "signed": bool(signed)},
+                            "params": params,
+                        },
+                    )
+            except Exception:
+                pass
+
             response.raise_for_status()
             return response.json()
             
         except requests.exceptions.RequestException as e:
             logger.error(f"BingX API request error: {e}")
+            try:
+                if self.telemetry is not None:
+                    order_id = None
+                    try:
+                        order_id = (params or {}).get("orderId")
+                    except Exception:
+                        order_id = None
+                    self.telemetry.emit(
+                        event_type="BINGX_REST_ERROR",
+                        level="ERROR",
+                        subsystem="BINGX",
+                        message=str(e),
+                        correlation={"bingx_order_id": str(order_id) if order_id else None},
+                        payload={"http": {"method": method, "url": url}, "api": {"endpoint": endpoint, "signed": bool(signed)}, "params": params},
+                    )
+            except Exception:
+                pass
             if hasattr(e, 'response') and e.response is not None:
                 try:
                     error_data = e.response.json()
@@ -218,6 +273,23 @@ class BingXClient:
             return {'code': -1, 'msg': str(e)}
         except Exception as e:
             logger.error(f"BingX API request error: {e}")
+            try:
+                if self.telemetry is not None:
+                    order_id = None
+                    try:
+                        order_id = (params or {}).get("orderId")
+                    except Exception:
+                        order_id = None
+                    self.telemetry.emit(
+                        event_type="BINGX_REST_ERROR",
+                        level="ERROR",
+                        subsystem="BINGX",
+                        message=str(e),
+                        correlation={"bingx_order_id": str(order_id) if order_id else None},
+                        payload={"http": {"method": method, "url": url}, "api": {"endpoint": endpoint, "signed": bool(signed)}, "params": params},
+                    )
+            except Exception:
+                pass
             return {'code': -1, 'msg': str(e)}
     
     def verify_connection(self) -> bool:
@@ -326,14 +398,17 @@ class BingXClient:
                                 tick_size = tick_from_prec
 
                         qty_step = _step_from_precision(instrument.get('quantityPrecision')) or Decimal("0")
+                        min_qty = _safe_decimal(instrument.get("minQty"), Decimal("0.001"))
+                        max_qty = _safe_decimal(instrument.get("maxQty"), Decimal("0"))
 
                         return {
                             'symbol': instrument.get('symbol'),
                             'tickSize': str(tick_size),
                             'lotSizeFilter': {
                                 'qtyStep': str(qty_step),
-                                'minQty': instrument.get('minQty'),
-                                'maxQty': instrument.get('maxQty')
+                                # API may return None/"" here -> ensure downstream Decimal() never crashes
+                                'minQty': str(min_qty),
+                                'maxQty': str(max_qty),
                             }
                         }
             
@@ -421,6 +496,9 @@ class BingXClient:
         """
         Calculate position size and leverage according to bot requirements.
         
+        REVISED: Enforces Initial Margin (IM) = 20 USDT with minimum 6x leverage
+        and exact 2-decimal precision.
+        
         Formula: N = (r * B) / Delta
         Where: Delta = abs(E - S) / E
         
@@ -441,10 +519,19 @@ class BingXClient:
         # Calculate notional target: N = (r * B) / Delta
         notional_target = (self.risk_per_trade * self.account_balance) / delta
         
-        # Calculate leverage: Lev_dyn = round(min(max(N / IM_plan, 1), 50), 2)
+        # Calculate leverage: Lev_dyn = round(min(max(N / IM_plan, MIN_LEV), MAX_LEV), 2)
         leverage_raw = notional_target / self.im_plan
         leverage_clamped = max(min(leverage_raw, MAX_LEVERAGE), MIN_LEVERAGE)
-        leverage = Decimal(str(leverage_clamped)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # REVISION: Ensure exactly 2 decimal places
+        leverage = leverage_clamped.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        # REVISION: Enforce IM ≈ 20 USDT by calculating quantity from IM directly
+        # Quantity = (IM × Leverage) / Entry_Price
+        # This ensures position size (notional) = IM × Leverage ≈ 20 × leverage
+        quantity = (self.im_plan * leverage) / entry_price
+        
+        # Recalculate actual notional with enforced quantity
+        actual_notional = quantity * entry_price
         
         # Classify leverage
         if leverage <= Decimal("6.00"):
@@ -455,11 +542,8 @@ class BingXClient:
             # Nearest-threshold classification in (6.00, 7.50), tie-break -> SWING (safer).
             leverage_class = "SWING" if leverage <= Decimal("6.75") else "DYNAMISK"
         
-        # Calculate quantity
-        quantity = notional_target / entry_price
-        
         return {
-            'notional_target': notional_target,
+            'notional_target': actual_notional,  # Updated to reflect enforced IM
             'delta': delta,
             'leverage': leverage,
             'leverage_display': f"x{leverage:.2f}",
@@ -476,7 +560,9 @@ class BingXClient:
         Deterministic fallback:
         - LONG: SL = -2.00% from entry
         - SHORT: SL = +2.00% from entry
-        - leverage = x10.00 (fixed)
+        - leverage = x10.00 (fixed, but respects MIN_LEVERAGE = 6x)
+        
+        REVISED: Enforces IM = 20 USDT and 2-decimal leverage precision
         
         Args:
             entry_price: Entry price
@@ -491,10 +577,13 @@ class BingXClient:
             # Default to LONG behavior if side is missing/unknown.
             sl_price = entry_price * Decimal("0.98")  # -2% from entry
 
-        leverage = Decimal("10.00")
+        # REVISION: Ensure leverage respects MIN_LEVERAGE and 2 decimals
+        leverage = max(Decimal("10.00"), MIN_LEVERAGE).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         delta = Decimal("0.02")  # 2%
-        notional_target = self.im_plan * leverage
-        quantity = notional_target / entry_price
+        
+        # REVISION: Enforce IM = 20 USDT
+        quantity = (self.im_plan * leverage) / entry_price
+        notional_target = quantity * entry_price
         
         return {
             'sl_price': sl_price,
@@ -616,10 +705,10 @@ class BingXClient:
             Dictionary with order IDs and status
         """
         formatted_symbol = self._format_symbol(symbol)
-        tick_size = Decimal(str(symbol_info.get('tickSize', '0.0001')))
-        lot_size_filter = symbol_info.get('lotSizeFilter', {})
-        qty_step = Decimal(str(lot_size_filter.get('qtyStep', '0.001')))
-        min_qty = Decimal(str(lot_size_filter.get('minQty', '0.001')))
+        tick_size = _safe_decimal(symbol_info.get("tickSize"), Decimal("0.0001"))
+        lot_size_filter = symbol_info.get("lotSizeFilter", {}) or {}
+        qty_step = _safe_decimal(lot_size_filter.get("qtyStep"), Decimal("0.001"))
+        min_qty = _safe_decimal(lot_size_filter.get("minQty"), Decimal("0.001"))
         
         # Calculate two prices
         p1, p2 = self.calculate_dual_limit_prices(target_entry, spread, tick_size)
@@ -756,7 +845,8 @@ class BingXClient:
         leverage: Decimal,
         post_only: bool = True,
         time_in_force: str = "GTC",
-        reduce_only: bool = False
+        reduce_only: bool = False,
+        position_side: Optional[str] = None,
     ) -> Dict:
         """
         Place a limit order on BingX.
@@ -775,10 +865,18 @@ class BingXClient:
             Order response dictionary with orderId field
         """
         try:
+            ps = None
+            if position_side is not None:
+                ps = str(position_side).upper()
+                if ps not in {"LONG", "SHORT"}:
+                    ps = None
+            if ps is None:
+                ps = 'LONG' if side == 'BUY' else 'SHORT'
+
             params = {
                 'symbol': symbol,
                 'side': side,
-                'positionSide': 'LONG' if side == 'BUY' else 'SHORT',
+                'positionSide': ps,
                 'type': 'LIMIT',
                 'quantity': str(quantity),
                 'price': str(price),
@@ -788,8 +886,10 @@ class BingXClient:
             if post_only:
                 params['postOnly'] = 'true'
             
+            # BingX: in Hedge mode, providing reduceOnly is rejected (code 109400).
+            # We always provide positionSide, so rely on that to target the correct leg.
             if reduce_only:
-                params['reduceOnly'] = 'true'
+                pass
             
             response = self._send_request(
                 'POST',
@@ -964,6 +1064,7 @@ class BingXClient:
         stop_price: Decimal,
         quantity: Decimal,
         reduce_only: bool = True,
+        position_side: Optional[str] = None,
     ) -> Dict:
         """
         Place a STOP_MARKET order (best-effort) for Stop Loss protection.
@@ -972,17 +1073,82 @@ class BingXClient:
         the caller should fall back to a reduce-only LIMIT as an emergency guardrail.
         """
         try:
+            ps = None
+            if position_side is not None:
+                ps = str(position_side).upper()
+                if ps not in {"LONG", "SHORT"}:
+                    ps = None
+            if ps is None:
+                ps = "LONG" if side == "SELL" else "SHORT"
+
             params: Dict[str, str] = {
                 "symbol": self._format_symbol(symbol),
                 "side": side,
-                "positionSide": "LONG" if side == "SELL" else "SHORT",
+                "positionSide": ps,
                 "type": "STOP_MARKET",
                 "quantity": str(quantity),
                 "stopPrice": str(stop_price),
                 "timeInForce": "GTC",
             }
+            # BingX: in Hedge mode, providing reduceOnly is rejected (code 109400).
+            # Rely on positionSide targeting instead.
             if reduce_only:
-                params["reduceOnly"] = "true"
+                pass
+
+            resp = self._send_request(
+                "POST",
+                "/openApi/swap/v2/trade/order",
+                params=params,
+                signed=True,
+            )
+            if resp.get("code") == 0:
+                data = resp.get("data", {}) or {}
+                order_id = (data.get("order") or {}).get("orderId") or data.get("orderId")
+                return {"orderId": order_id, "status": "ACCEPTED", "retCode": 0, **(data if isinstance(data, dict) else {})}
+
+            return {
+                "orderId": None,
+                "status": "FAILED",
+                "retCode": resp.get("code"),
+                "error": resp.get("msg", "Unknown error"),
+                "raw": resp,
+            }
+        except Exception as e:
+            return {"orderId": None, "status": "ERROR", "error": str(e)}
+
+    def place_market_order(
+        self,
+        *,
+        symbol: str,
+        side: str,
+        quantity: Decimal,
+        reduce_only: bool = False,
+        position_side: Optional[str] = None,
+    ) -> Dict:
+        """
+        Place a MARKET order.
+        """
+        try:
+            ps = None
+            if position_side is not None:
+                ps = str(position_side).upper()
+                if ps not in {"LONG", "SHORT"}:
+                    ps = None
+            if ps is None:
+                ps = "LONG" if side == "BUY" else "SHORT"
+
+            params: Dict[str, str] = {
+                "symbol": self._format_symbol(symbol),
+                "side": side,
+                "positionSide": ps,
+                "type": "MARKET",
+                "quantity": str(quantity),
+                "timeInForce": "GTC",
+            }
+            # BingX: in Hedge mode, providing reduceOnly is rejected (code 109400).
+            # Rely on positionSide targeting instead.
+            if reduce_only:
+                pass
 
             resp = self._send_request(
                 "POST",

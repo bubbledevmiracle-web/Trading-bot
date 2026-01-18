@@ -27,6 +27,8 @@ from typing import Dict, List, Optional, Tuple
 import config
 from bingx_client import BingXClient
 from lifecycle_store import LifecycleStore, Stage2CompletedRow
+from stage6_telemetry import TelemetryLogger, TelemetryCorrelation
+from stage6_telegram import send_telegram_with_telemetry
 
 logger = logging.getLogger(__name__)
 
@@ -62,12 +64,14 @@ class Stage4LifecycleManager:
         bingx: BingXClient,
         telegram_client=None,
         telegram_chat_id: Optional[str] = None,
+        telemetry: Optional[TelemetryLogger] = None,
         worker_id: str = "stage4-main",
     ):
         self.store = store
         self.bingx = bingx
         self.telegram_client = telegram_client
         self.telegram_chat_id = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        self.telemetry = telemetry
         self.worker_id = worker_id
 
     async def run_forever(self) -> None:
@@ -115,6 +119,7 @@ class Stage4LifecycleManager:
             return
 
         planned_qty = str(stage2.get("Q")) if stage2.get("Q") is not None else None
+        orig_leverage = str(stage2.get("leverage")) if stage2.get("leverage") is not None else None
         f = _d(((stage2.get("fills") or {}).get("f")), Decimal("0"))
         N = _d(((stage2.get("fills") or {}).get("N")), Decimal("0"))
         avg_entry = None
@@ -144,6 +149,13 @@ class Stage4LifecycleManager:
             remaining_qty=planned_qty,
             avg_entry=avg_entry,
             sl_price=str(row.sl_price) if row.sl_price is not None else None,
+            signal_entry_price=str(row.entry_price) if row.entry_price is not None else None,
+            signal_sl_price=str(row.sl_price) if row.sl_price is not None else None,
+            signal_leverage=orig_leverage,
+            # Back-compat writes
+            orig_entry_price=str(row.entry_price) if row.entry_price is not None else None,
+            orig_sl_price=str(row.sl_price) if row.sl_price is not None else None,
+            orig_leverage=orig_leverage,
             tp_levels=tp_levels,
         )
         if not inserted:
@@ -207,6 +219,7 @@ class Stage4LifecycleManager:
                     post_only=False,
                     time_in_force="GTC",
                     reduce_only=True,
+                    position_side=side_norm,
                 )
                 oid = resp.get("orderId")
                 if oid:
@@ -232,6 +245,7 @@ class Stage4LifecycleManager:
                 stop_price=sl_price,
                 quantity=remaining,
                 reduce_only=True,
+                position_side=side_norm,
             )
             oid = resp.get("orderId")
             if oid:
@@ -247,6 +261,8 @@ class Stage4LifecycleManager:
                     f"side={side_norm}\n"
                     f"sl={sl_price}\n"
                     f"error={resp.get('error') or resp.get('raw')}"
+                    ,
+                    ssot_id=ssot_id,
                 )
 
     # ------------------------------------------------------------------
@@ -268,6 +284,9 @@ class Stage4LifecycleManager:
                 continue
             if (pos.get("status") or "").upper() in {"CLOSED"}:
                 continue
+            if (pos.get("status") or "").upper() in {"HEDGE_MODE"}:
+                # Stage 5 owns the controlling logic in hedge mode.
+                continue
 
             symbol = pos["symbol"]
             formatted_symbol = self.bingx._format_symbol(symbol)
@@ -282,6 +301,7 @@ class Stage4LifecycleManager:
                     continue
 
                 executed = _d(st.get("executedQty"), Decimal("0"))
+                avg_price = _d(st.get("avgPrice"), Decimal("0"))
                 status = (st.get("status") or "").upper() if st.get("status") is not None else None
 
                 if executed < last_exec:
@@ -291,7 +311,14 @@ class Stage4LifecycleManager:
 
                 delta = executed - last_exec
                 if delta > 0:
-                    await self._apply_fill(ssot_id=ssot_id, kind=kind, order_id=oid, level_index=ot.get("level_index"), fill_qty=delta)
+                    await self._apply_fill(
+                        ssot_id=ssot_id,
+                        kind=kind,
+                        order_id=oid,
+                        level_index=ot.get("level_index"),
+                        fill_qty=delta,
+                        fill_avg_price=avg_price if avg_price > 0 else None,
+                    )
 
                 await asyncio.to_thread(self.store.update_order_tracker, order_id=oid, last_executed_qty=str(executed), last_status=status)
 
@@ -314,6 +341,7 @@ class Stage4LifecycleManager:
         order_id: str,
         level_index: Optional[int],
         fill_qty: Decimal,
+        fill_avg_price: Optional[Decimal],
     ) -> None:
         pos = await asyncio.to_thread(self.store.get_position, ssot_id=ssot_id)
         if not pos:
@@ -326,6 +354,11 @@ class Stage4LifecycleManager:
 
         tp_levels = pos.get("tp_levels") or []
 
+        # ENTRY fills are informational here (Stage 2 already completed).
+        # Do NOT mutate remaining_qty; remaining_qty tracks open position qty (reduce-only exits).
+        if kind == "ENTRY":
+            return
+
         if kind == "TP" and level_index is not None and 0 <= int(level_index) < len(tp_levels):
             lvl = tp_levels[int(level_index)]
             filled_prev = _d(lvl.get("filled_qty"), Decimal("0"))
@@ -333,6 +366,34 @@ class Stage4LifecycleManager:
             # status heuristic: if order fully filled we will see it in status, but for now treat any fill as PARTIAL until remaining goes 0
             lvl["status"] = "PARTIAL"
             await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, remaining_qty=str(new_remaining), tp_levels=tp_levels)
+
+            if self.telemetry is not None:
+                pnl_usdt = None
+                try:
+                    side_norm = (pos.get("side") or "").upper()
+                    avg_entry = _d(pos.get("avg_entry"), Decimal("0"))
+                    if fill_avg_price is not None and avg_entry > 0:
+                        if side_norm == "LONG":
+                            pnl_usdt = (Decimal(fill_avg_price) - avg_entry) * fill_qty
+                        else:
+                            pnl_usdt = (avg_entry - Decimal(fill_avg_price)) * fill_qty
+                except Exception:
+                    pnl_usdt = None
+                self.telemetry.emit(
+                    event_type="TP_FILL",
+                    level="INFO",
+                    subsystem="STAGE4",
+                    message="TP fill confirmed",
+                    correlation=TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}", bingx_order_id=str(order_id)),
+                    payload={
+                        "symbol": pos.get("symbol"),
+                        "tp_index": int(level_index) + 1,
+                        "fill_qty": str(fill_qty),
+                        "fill_avg_price": str(fill_avg_price) if fill_avg_price is not None else None,
+                        "pnl_usdt": str(pnl_usdt) if pnl_usdt is not None else None,
+                        "remaining_qty": str(new_remaining),
+                    },
+                )
 
             await self._send_telegram(
                 f"✅ TP fill confirmed (BingX)\n"
@@ -343,6 +404,8 @@ class Stage4LifecycleManager:
                 f"fill_qty={fill_qty}\n"
                 f"remaining_qty={new_remaining}\n"
                 f"time={_now_local_str()}"
+                ,
+                ssot_id=ssot_id,
             )
 
             # Move SL to BE after first TP fill (confirmed fill event)
@@ -352,6 +415,32 @@ class Stage4LifecycleManager:
 
         if kind == "SL":
             await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, remaining_qty=str(new_remaining))
+            if self.telemetry is not None:
+                pnl_usdt = None
+                try:
+                    side_norm = (pos.get("side") or "").upper()
+                    avg_entry = _d(pos.get("avg_entry"), Decimal("0"))
+                    if fill_avg_price is not None and avg_entry > 0:
+                        if side_norm == "LONG":
+                            pnl_usdt = (Decimal(fill_avg_price) - avg_entry) * fill_qty
+                        else:
+                            pnl_usdt = (avg_entry - Decimal(fill_avg_price)) * fill_qty
+                except Exception:
+                    pnl_usdt = None
+                self.telemetry.emit(
+                    event_type="SL_FILL",
+                    level="INFO",
+                    subsystem="STAGE4",
+                    message="SL fill confirmed",
+                    correlation=TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}", bingx_order_id=str(order_id)),
+                    payload={
+                        "symbol": pos.get("symbol"),
+                        "fill_qty": str(fill_qty),
+                        "fill_avg_price": str(fill_avg_price) if fill_avg_price is not None else None,
+                        "pnl_usdt": str(pnl_usdt) if pnl_usdt is not None else None,
+                        "remaining_qty": str(new_remaining),
+                    },
+                )
             await self._send_telegram(
                 f"🛑 SL fill confirmed (BingX)\n"
                 f"ssot_id={ssot_id}\n"
@@ -360,11 +449,13 @@ class Stage4LifecycleManager:
                 f"fill_qty={fill_qty}\n"
                 f"remaining_qty={new_remaining}\n"
                 f"time={_now_local_str()}"
+                ,
+                ssot_id=ssot_id,
             )
             return
 
         # Entry fills are informational in Stage 4 (Stage 2 already completed)
-        await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, remaining_qty=str(new_remaining))
+        # (handled above)
 
     async def _move_sl_to_be(self, *, ssot_id: int) -> None:
         pos = await asyncio.to_thread(self.store.get_position, ssot_id=ssot_id)
@@ -399,21 +490,43 @@ class Stage4LifecycleManager:
             stop_price=avg_entry,
             quantity=remaining,
             reduce_only=True,
+            position_side=side_norm,
         )
         oid = resp.get("orderId")
         if not oid:
             await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
+            if self.telemetry is not None:
+                self.telemetry.emit(
+                    event_type="SL_MOVE_FAILED",
+                    level="ERROR",
+                    subsystem="STAGE4",
+                    message="Failed to move SL to BE",
+                    correlation=TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}"),
+                    payload={"symbol": symbol, "be": str(avg_entry), "resp": resp},
+                )
             await self._send_telegram(
                 f"⚠️ Stage4: Failed to move SL to BE (needs manual protection)\n"
                 f"ssot_id={ssot_id}\n"
                 f"symbol={symbol}\n"
                 f"be={avg_entry}\n"
                 f"error={resp.get('error') or resp.get('raw')}"
+                ,
+                ssot_id=ssot_id,
             )
             return
 
         await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, sl_order_id=str(oid), sl_price=str(avg_entry))
         await asyncio.to_thread(self.store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
+
+        if self.telemetry is not None:
+            self.telemetry.emit(
+                event_type="SL_MOVED_BE",
+                level="INFO",
+                subsystem="STAGE4",
+                message="SL moved to Break-Even",
+                correlation=TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}", bingx_order_id=str(oid)),
+                payload={"symbol": symbol, "new_sl": str(avg_entry)},
+            )
 
         await self._send_telegram(
             f"✅ SL moved to Break-Even (BingX confirmed)\n"
@@ -421,6 +534,8 @@ class Stage4LifecycleManager:
             f"symbol={symbol}\n"
             f"new_sl={avg_entry}\n"
             f"time={_now_local_str()}"
+            ,
+            ssot_id=ssot_id,
         )
 
     async def _close_position(self, *, ssot_id: int, reason: str) -> None:
@@ -443,7 +558,25 @@ class Stage4LifecycleManager:
                     pass
             lvl["status"] = "COMPLETED" if _d(lvl.get("filled_qty"), Decimal("0")) > 0 else lvl.get("status", "OPEN")
 
-        await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, status="CLOSED", remaining_qty="0", tp_levels=tp_levels)
+        await asyncio.to_thread(
+            self.store.update_position,
+            ssot_id=ssot_id,
+            status="CLOSED",
+            remaining_qty="0",
+            tp_levels=tp_levels,
+            closed_reason=str(reason),
+            closed_at_utc=datetime.utcnow().replace(tzinfo=None).isoformat() + "Z",
+        )
+
+        if self.telemetry is not None:
+            self.telemetry.emit(
+                event_type="POSITION_CLOSED",
+                level="INFO",
+                subsystem="STAGE4",
+                message="Position closed",
+                correlation=TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}"),
+                payload={"symbol": symbol, "reason": str(reason)},
+            )
 
         await self._send_telegram(
             f"🏁 Position CLOSED (BingX confirmed)\n"
@@ -451,13 +584,24 @@ class Stage4LifecycleManager:
             f"symbol={symbol}\n"
             f"reason={reason}\n"
             f"time={_now_local_str()}"
+            ,
+            ssot_id=ssot_id,
         )
 
-    async def _send_telegram(self, text: str) -> None:
+    async def _send_telegram(self, text: str, *, ssot_id: Optional[int] = None) -> None:
         if not self.telegram_client or not self.telegram_chat_id:
             return
         try:
-            await self.telegram_client.send_message(chat_id=self.telegram_chat_id, text=text)
+            corr = None
+            if ssot_id is not None:
+                corr = TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}")
+            await send_telegram_with_telemetry(
+                telegram_client=self.telegram_client,
+                chat_id=self.telegram_chat_id,
+                text=text,
+                telemetry=self.telemetry,
+                correlation=corr,
+            )
         except Exception as e:
             logger.error("Stage 4 Telegram send failed: %s", e)
 
