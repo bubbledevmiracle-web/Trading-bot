@@ -104,6 +104,11 @@ DEFAULT_SIGNAL_TYPE_BY_CHANNEL = {
 EXTRACT_SIGNALS_LOG = Path("logs/extracted_signals.log")
 EXTRACT_SIGNALS_ONLY = False  # True = Extract but don't forward to private channel
 
+# Test Extraction (startup-only) - extract sample signals to a file
+test_extract = False
+TEST_EXTRACT_SIGNAL_FILE = Path("data/test_extracted_signals.jsonl")
+TEST_EXTRACT_LIMIT = 1
+
 # ============================================================================
 # SSoT (SIGNAL STORE) - SQLITE CONFIGURATION
 # ============================================================================
@@ -267,6 +272,7 @@ def ensure_directories():
     LOG_DIR.mkdir(exist_ok=True)
     EXTRACT_SIGNALS_LOG.parent.mkdir(exist_ok=True)
     SSOT_DB_PATH.parent.mkdir(exist_ok=True)
+    TEST_EXTRACT_SIGNAL_FILE.parent.mkdir(exist_ok=True)
 
 def get_config_summary() -> dict:
     """Get configuration summary for logging."""
@@ -294,6 +300,7 @@ def get_config_summary() -> dict:
             "duplicate_ttl_hours": DUPLICATE_TTL_HOURS,
             "ssot_enable": SSOT_ENABLE,
             "ssot_db_path": str(SSOT_DB_PATH),
+            "test_extract": test_extract,
         }
     }
 

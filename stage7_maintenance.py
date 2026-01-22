@@ -581,6 +581,7 @@ class Stage7Maintenance:
         # If exchange already has open orders for this symbol, avoid guessing and alert instead.
         # (Prevents accidental duplicate protections when user placed manual orders.)
         open_orders = await asyncio.to_thread(self.bingx.get_open_orders, symbol)
+        # logger.info("Stage 7: Checking open orders for protection repair: symbol=%s, open_orders=%s", symbol, open_orders.__getitem__(0))
         if open_orders:
             # Best-effort: if we already have tracked order ids, we can still repair missing ones.
             # If nothing is tracked, it's ambiguous -> alert.

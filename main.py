@@ -12,9 +12,11 @@ Date: 2026-01-14
 
 import asyncio
 import hashlib
+import json
 import logging
 import re
 import sys
+from decimal import Decimal
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 
@@ -38,6 +40,7 @@ import config
 from startup_checker import StartupChecker
 from ssot_store import SignalStore
 from signal_ingestion import SignalIngestionNormalizerProcessor
+from signal_parser import SignalParser
 from signal_dual_limit_entry import DualLimitEntryExecutor
 from bingx_client import BingXClient
 from lifecycle_store import LifecycleStore
@@ -314,6 +317,10 @@ class TelegramForwarder:
         # Stage 7 maintenance
         self._stage7_task: Optional[asyncio.Task] = None
         self._stage7: Optional[Stage7Maintenance] = None
+
+        # Test-extract replay
+        self._test_extract_task: Optional[asyncio.Task] = None
+        self._test_extract_index: int = 0
     
     async def start(self):
         """Start the Telegram client and run Stage 0 checks."""
@@ -458,8 +465,159 @@ class TelegramForwarder:
         logger.info(f"📊 Mode: {'DEMO (Extract Only)' if config.DEMO_MODE else 'PRODUCTION'}")
         logger.info(f"📂 SSoT DB: {config.SSOT_DB_PATH if config.SSOT_ENABLE else 'DISABLED'}")
         logger.info("="*60 + "\n")
+
+        # If test_extract is enabled, run extraction of sample signals
+        if getattr(config, "test_extract", False):
+            await self._run_test_extract()
+
+            if self._is_test_extract_file_ready():
+                if self._test_extract_task is None:
+                    self._test_extract_task = asyncio.create_task(self._run_test_extract_replay())
+                    logger.info("✅ Test extract replay started (file-driven signals)")
         
         return True
+
+    def _is_test_extract_file_ready(self) -> bool:
+        if not getattr(config, "test_extract", False):
+            return False
+        signal_file = getattr(config, "TEST_EXTRACT_SIGNAL_FILE", None)
+        if signal_file is None:
+            return False
+        try:
+            return signal_file.exists() and signal_file.stat().st_size > 0
+        except Exception:
+            return False
+
+    async def _run_test_extract_replay(self):
+        """Replay test-extract file signals one by one every minute."""
+        if not config.SSOT_ENABLE or self.ssot_store is None or self.stage1 is None:
+            logger.error("❌ SSoT is disabled or not initialized - cannot replay test extract")
+            return
+
+        signal_file = getattr(config, "TEST_EXTRACT_SIGNAL_FILE", None)
+        if signal_file is None:
+            logger.warning("Test extract replay enabled but TEST_EXTRACT_SIGNAL_FILE is not set")
+            return
+
+        while True:
+            try:
+                if not signal_file.exists() or signal_file.stat().st_size == 0:
+                    logger.info("Test extract file missing/empty; stopping replay")
+                    return
+
+                lines = signal_file.read_text(encoding="utf-8").splitlines()
+                if self._test_extract_index >= len(lines):
+                    logger.info("Test extract replay completed")
+                    return
+
+                line = lines[self._test_extract_index].strip()
+                self._test_extract_index += 1
+                if not line:
+                    await asyncio.sleep(60)
+                    continue
+
+                item = json.loads(line)
+                parsed = item.get("parsed") or {}
+                raw_text = parsed.get("original_text") or item.get("raw_text")
+                if not raw_text:
+                    logger.warning("Test extract item missing raw_text; skipping")
+                    await asyncio.sleep(60)
+                    continue
+
+                channel_name = item.get("channel_name") or "TEST_EXTRACT"
+                chat_id = str(item.get("chat_id") or "test-extract")
+                message_id = int(item.get("message_id") or self._test_extract_index)
+                message_date_raw = item.get("message_date")
+                try:
+                    msg_dt = datetime.fromisoformat(message_date_raw) if message_date_raw else None
+                except Exception:
+                    msg_dt = None
+
+                decision = self.stage1.process(
+                    channel_name=channel_name,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    message_dt=msg_dt,
+                    raw_text=raw_text,
+                )
+
+                if decision.status == "ACCEPTED":
+                    logger.info(
+                        "✅ Test extract ACCEPTED -> stored in SSoT queue (ssot_id=%s)",
+                        decision.stored_signal_id,
+                    )
+                elif decision.status == "BLOCKED":
+                    logger.warning("⛔ Test extract BLOCKED: %s", decision.reason)
+                else:
+                    logger.warning("❌ Test extract INVALID: %s", decision.reason)
+
+                await asyncio.sleep(60)
+            except asyncio.CancelledError:
+                return
+            except Exception as exc:
+                logger.error(f"Test extract replay failed: {exc}", exc_info=True)
+                await asyncio.sleep(60)
+    
+    async def _run_test_extract(self):
+        """Extract a sample of signals to a file for testing."""
+        signal_file = getattr(config, "TEST_EXTRACT_SIGNAL_FILE", None)
+        if signal_file is None:
+            logger.warning("Test extract enabled but TEST_EXTRACT_SIGNAL_FILE is not set")
+            return
+
+        try:
+            if signal_file.exists() and signal_file.stat().st_size > 0:
+                logger.info("Test extract file already exists with content; skipping extraction")
+                return
+        except Exception as exc:
+            logger.warning(f"Unable to inspect test extract file: {exc}")
+            return
+
+        limit = int(getattr(config, "TEST_EXTRACT_LIMIT", 10))
+        parser = self.stage1.parser if self.stage1 is not None else SignalParser()
+        extracted = []
+
+        for channel_name, id_or_username in self.source_channels.items():
+            try:
+                async for message in self.app.get_chat_history(id_or_username, limit=400):
+                    if not message or not message.text:
+                        continue
+                    is_signal, signal_reason = is_trading_signal(message.text)
+                    if not is_signal:
+                        continue
+                    parsed = parser.parse_signal(message.text)
+                    if not parsed:
+                        continue
+
+                    extracted.append({
+                        "channel_name": channel_name,
+                        "chat_id": str(getattr(message.chat, "id", id_or_username)),
+                        "message_id": message.id,
+                        "message_date": message.date.isoformat() if getattr(message, "date", None) else None,
+                        "reason": signal_reason,
+                        "parsed": parsed,
+                    })
+
+                    if len(extracted) >= limit:
+                        break
+                if len(extracted) >= limit:
+                    break
+            except Exception as exc:
+                logger.warning(f"Test extract failed for channel {channel_name}: {exc}")
+
+        def _json_default(value):
+            if isinstance(value, Decimal):
+                return str(value)
+            return str(value)
+
+        try:
+            signal_file.parent.mkdir(exist_ok=True)
+            with signal_file.open("w", encoding="utf-8") as handle:
+                for item in extracted:
+                    handle.write(json.dumps(item, ensure_ascii=False, default=_json_default) + "\n")
+            logger.info(f"Test extract saved {len(extracted)} signals to {signal_file}")
+        except Exception as exc:
+            logger.error(f"Failed to write test extract file: {exc}")
     
     async def stop(self):
         """Stop the Telegram client."""
@@ -508,6 +666,13 @@ class TelegramForwarder:
                 pass
             self._stage7_task = None
             self._stage7 = None
+        if self._test_extract_task is not None:
+            self._test_extract_task.cancel()
+            try:
+                await self._test_extract_task
+            except Exception:
+                pass
+            self._test_extract_task = None
         if self._stage4_store is not None:
             self._stage4_store.close()
             self._stage4_store = None
@@ -535,6 +700,9 @@ class TelegramForwarder:
     async def handle_new_message(self, client: Client, message: Message):
         """Handle new message from source channels."""
         try:
+            if self._is_test_extract_file_ready():
+                return
+
             # Skip if Stage 0 didn't pass
             if not self.stage0_passed:
                 return

@@ -151,6 +151,7 @@ class BingXClient:
             query_string.encode('utf-8'),
             hashlib.sha256
         ).hexdigest()
+
         return signature
     
     def _send_request(self, method: str, endpoint: str, params: Dict = None, signed: bool = True) -> Dict:
@@ -519,12 +520,13 @@ class BingXClient:
         # Calculate notional target: N = (r * B) / Delta
         notional_target = (self.risk_per_trade * self.account_balance) / delta
         
-        # Calculate leverage: Lev_dyn = round(min(max(N / IM_plan, MIN_LEV), MAX_LEV), 2)
+        # Calculate leverage: Lev_dyn = round(min(max(N / IM_plan, MIN_LEV), MAX_LEV), 0)
         leverage_raw = notional_target / self.im_plan
         leverage_clamped = max(min(leverage_raw, MAX_LEVERAGE), MIN_LEVERAGE)
-        # REVISION: Ensure exactly 2 decimal places
-        leverage = leverage_clamped.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # REVISION: Ensure integer leverage (BingX requirement)
+        leverage = leverage_clamped.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
         
+        logger.info(f"Calculated position size: Notional={notional_target}, Delta={delta}, Leverage={leverage}")
         # REVISION: Enforce IM ≈ 20 USDT by calculating quantity from IM directly
         # Quantity = (IM × Leverage) / Entry_Price
         # This ensures position size (notional) = IM × Leverage ≈ 20 × leverage
@@ -546,7 +548,7 @@ class BingXClient:
             'notional_target': actual_notional,  # Updated to reflect enforced IM
             'delta': delta,
             'leverage': leverage,
-            'leverage_display': f"x{leverage:.2f}",
+            'leverage_display': f"x{int(leverage)}",
             'leverage_class': leverage_class,
             'quantity': quantity,
             'risk_percent': self.risk_per_trade,
@@ -577,8 +579,8 @@ class BingXClient:
             # Default to LONG behavior if side is missing/unknown.
             sl_price = entry_price * Decimal("0.98")  # -2% from entry
 
-        # REVISION: Ensure leverage respects MIN_LEVERAGE and 2 decimals
-        leverage = max(Decimal("10.00"), MIN_LEVERAGE).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # REVISION: Ensure leverage respects MIN_LEVERAGE and integer rounding
+        leverage = max(Decimal("10.00"), MIN_LEVERAGE).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
         delta = Decimal("0.02")  # 2%
         
         # REVISION: Enforce IM = 20 USDT
@@ -589,7 +591,7 @@ class BingXClient:
             'sl_price': sl_price,
             'notional_target': notional_target,
             'leverage': leverage,
-            'leverage_display': f"x{leverage:.2f}",
+            'leverage_display': f"x{int(leverage)}",
             'leverage_class': 'FAST',
             'delta': delta,
             'quantity': quantity,
@@ -678,6 +680,9 @@ class BingXClient:
                     p2_adj = self._quantize_price(p2_adj + tick_size, tick_size)
 
         return p1_adj, p2_adj
+    
+    # Splits total size into two post‑only GTC limit orders around the entry price, sets leverage, 
+    # and returns both order IDs plus prices/quantities. 
     
     def place_dual_limit_orders(
         self,
@@ -824,6 +829,14 @@ class BingXClient:
                 },
                 signed=True
             )
+
+            logger.info(
+                "BingX set_leverage response: symbol=%s leverage=%s code=%s msg=%s",
+                symbol,
+                leverage,
+                response.get('code'),
+                response.get('msg'),
+            )
             
             if response.get('code') == 0:
                 logger.info(f"✅ Leverage set to {leverage}x for {symbol}")
@@ -835,14 +848,13 @@ class BingXClient:
         except Exception as e:
             logger.error(f"Error setting leverage: {e}")
             return False
-    
+    # Sends a single post‑only limit order to BingX via REST and returns the order ID or error.
     def place_limit_order(
         self,
         symbol: str,
         side: str,
         price: Decimal,
         quantity: Decimal,
-        leverage: Decimal,
         post_only: bool = True,
         time_in_force: str = "GTC",
         reduce_only: bool = False,
@@ -1055,6 +1067,8 @@ class BingXClient:
             except Exception:
                 continue
         return []
+    
+    # Sends a STOP_MARKET order (for SL protection) using BingX REST and returns the order ID or error.
 
     def place_stop_market_order(
         self,
@@ -1115,6 +1129,8 @@ class BingXClient:
             }
         except Exception as e:
             return {"orderId": None, "status": "ERROR", "error": str(e)}
+
+    # Sends a STOP_MARKET order (for SL protection) using BingX REST and returns the order ID or error.
 
     def place_market_order(
         self,
