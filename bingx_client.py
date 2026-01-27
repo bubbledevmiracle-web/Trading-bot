@@ -67,6 +67,21 @@ def _step_from_precision(precision) -> Optional[Decimal]:
         return None
 
 
+def _round_leverage_int(value: Decimal, *, min_lev: Decimal, max_lev: Decimal) -> Decimal:
+    """
+    Round leverage to 1 decimal place (half-up), then to a whole number, and clamp to [min_lev, max_lev].
+    Ensures minimum leverage is enforced (e.g., 6x).
+    """
+    lev = _safe_decimal(value, min_lev)
+    lev = lev.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    lev = lev.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    if lev < min_lev:
+        lev = min_lev
+    if lev > max_lev:
+        lev = max_lev
+    return lev
+
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
@@ -105,7 +120,6 @@ class BingXClient:
         self.api_key = api_key or BINGX_API_KEY
         self.secret_key = secret_key or BINGX_API_SECRET
         self.testnet = testnet
-        
         # Set API endpoints
         if testnet:
             self.base_url = "https://open-api-vst.bingx.com"
@@ -522,9 +536,7 @@ class BingXClient:
         
         # Calculate leverage: Lev_dyn = round(min(max(N / IM_plan, MIN_LEV), MAX_LEV), 0)
         leverage_raw = notional_target / self.im_plan
-        leverage_clamped = max(min(leverage_raw, MAX_LEVERAGE), MIN_LEVERAGE)
-        # REVISION: Ensure integer leverage (BingX requirement)
-        leverage = leverage_clamped.quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        leverage = _round_leverage_int(leverage_raw, min_lev=MIN_LEVERAGE, max_lev=MAX_LEVERAGE)
         
         logger.info(f"Calculated position size: Notional={notional_target}, Delta={delta}, Leverage={leverage}")
         # REVISION: Enforce IM ≈ 20 USDT by calculating quantity from IM directly
@@ -580,7 +592,7 @@ class BingXClient:
             sl_price = entry_price * Decimal("0.98")  # -2% from entry
 
         # REVISION: Ensure leverage respects MIN_LEVERAGE and integer rounding
-        leverage = max(Decimal("10.00"), MIN_LEVERAGE).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        leverage = _round_leverage_int(max(Decimal("10.00"), MIN_LEVERAGE), min_lev=MIN_LEVERAGE, max_lev=MAX_LEVERAGE)
         delta = Decimal("0.02")  # 2%
         
         # REVISION: Enforce IM = 20 USDT
@@ -736,8 +748,9 @@ class BingXClient:
         orders = []
         order_ids = []
         
-        # Set leverage first
-        self.set_leverage(formatted_symbol, int(leverage))
+        # Set leverage first (round to 1 decimal before calling)
+        lev_1dp = _safe_decimal(leverage, MIN_LEVERAGE).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        self.set_leverage(formatted_symbol, lev_1dp)
         
         # Place first order
         order1 = self.place_limit_order(
@@ -745,7 +758,6 @@ class BingXClient:
             side=side,
             price=p1,
             quantity=q1,
-            leverage=leverage,
             post_only=True,
             time_in_force="GTC"
         )
@@ -759,7 +771,6 @@ class BingXClient:
             side=side,
             price=p2,
             quantity=q2,
-            leverage=leverage,
             post_only=True,
             time_in_force="GTC"
         )
@@ -807,7 +818,7 @@ class BingXClient:
             logger.error(f"Failed to get current price: {e}")
             return Decimal("0")
     
-    def set_leverage(self, symbol: str, leverage: int) -> bool:
+    def set_leverage(self, symbol: str, leverage: Decimal) -> bool:
         """
         Set leverage for a symbol.
         
@@ -819,13 +830,20 @@ class BingXClient:
             True if successful
         """
         try:
+            # Enforce rounding to 1 decimal and clamp to [MIN, MAX]
+            lev_val = _safe_decimal(leverage, MIN_LEVERAGE).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+            if lev_val < MIN_LEVERAGE:
+                lev_val = MIN_LEVERAGE
+            if lev_val > MAX_LEVERAGE:
+                lev_val = MAX_LEVERAGE
+
             response = self._send_request(
                 'POST',
                 '/openApi/swap/v2/trade/leverage',
                 params={
                     'symbol': symbol,
                     'side': 'LONG',  # BingX requires side
-                    'leverage': leverage
+                    'leverage': str(lev_val)
                 },
                 signed=True
             )
@@ -833,13 +851,13 @@ class BingXClient:
             logger.info(
                 "BingX set_leverage response: symbol=%s leverage=%s code=%s msg=%s",
                 symbol,
-                leverage,
+                lev_val,
                 response.get('code'),
                 response.get('msg'),
             )
             
             if response.get('code') == 0:
-                logger.info(f"✅ Leverage set to {leverage}x for {symbol}")
+                logger.info(f"✅ Leverage set to {lev_val}x for {symbol}")
                 return True
             else:
                 logger.error(f"Failed to set leverage: {response.get('msg')}")
@@ -1067,6 +1085,44 @@ class BingXClient:
             except Exception:
                 continue
         return []
+
+    def get_my_trades(
+        self,
+        symbol: Optional[str] = None,
+        limit: int = 100,
+        start_time_ms: Optional[int] = None,
+    ) -> List[Dict]:
+        """
+        Get trade/fill history (REST snapshot).
+
+        Best-effort wrapper around /openApi/swap/v2/trade/myTrades.
+        """
+        params: Dict[str, str] = {"limit": str(int(limit))}
+        if symbol:
+            params["symbol"] = self._format_symbol(symbol)
+        if start_time_ms:
+            params["startTime"] = str(int(start_time_ms))
+
+        try:
+            resp = self._send_request(
+                "GET",
+                "/openApi/swap/v2/trade/myTrades",
+                params=params,
+                signed=True,
+            )
+            if resp.get("code") == 0:
+                data = resp.get("data", {})
+                if isinstance(data, list):
+                    return data
+                if isinstance(data, dict):
+                    if isinstance(data.get("trades"), list):
+                        return data["trades"]
+                    if isinstance(data.get("trade"), list):
+                        return data["trade"]
+            return []
+        except Exception as e:
+            logger.error("Failed to get myTrades: %s", e)
+            return []
     
     # Sends a STOP_MARKET order (for SL protection) using BingX REST and returns the order ID or error.
 

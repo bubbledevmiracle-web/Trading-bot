@@ -578,32 +578,84 @@ class Stage7Maintenance:
         if not symbol or side_norm not in {"LONG", "SHORT"}:
             return False
 
-        # If exchange already has open orders for this symbol, avoid guessing and alert instead.
-        # (Prevents accidental duplicate protections when user placed manual orders.)
+        # If exchange already has open orders for this symbol, try to reconcile them into TP/SL.
+        # Only alert as ambiguous if we cannot match any TP/SL candidates.
         open_orders = await asyncio.to_thread(self.bingx.get_open_orders, symbol)
-        # logger.info("Stage 7: Checking open orders for protection repair: symbol=%s, open_orders=%s", symbol, open_orders.__getitem__(0))
         if open_orders:
-            # Best-effort: if we already have tracked order ids, we can still repair missing ones.
-            # If nothing is tracked, it's ambiguous -> alert.
-            has_any_tracked = bool(pos.get("sl_order_id")) or any((lvl or {}).get("order_id") for lvl in (pos.get("tp_levels") or []))
-            if not has_any_tracked:
-                # Avoid spamming the same warning every reconcile tick. Once we mark the row as
-                # NEEDS_MANUAL_PROTECTION, we only re-alert if the status changes back.
-                if (pos.get("status") or "").upper() == "NEEDS_MANUAL_PROTECTION":
+            symbol_info = await asyncio.to_thread(self.bingx.get_symbol_info, symbol)
+            tick_size = _d((symbol_info or {}).get("tickSize"), Decimal("0"))
+            tol = tick_size if tick_size > 0 else Decimal("0.0001")
+
+            tp_levels = pos.get("tp_levels") or []
+            sl_price = _d(pos.get("sl_price"), Decimal("0"))
+
+            matched_any = False
+            formatted_symbol = self.bingx._format_symbol(symbol)
+
+            for o in open_orders:
+                oid = o.get("orderId")
+                if not oid:
+                    continue
+                o_side = (o.get("side") or "").upper()
+                o_type = (o.get("type") or o.get("orderType") or "").upper()
+                reduce_only = str(o.get("reduceOnly", "")).lower() == "true" or bool(o.get("reduceOnly"))
+                if not reduce_only:
+                    continue
+
+                price = _d(o.get("price") or o.get("avgPrice"), Decimal("0"))
+                stop_price = _d(o.get("stopPrice") or o.get("triggerPrice"), Decimal("0"))
+
+                exit_side = "SELL" if side_norm == "LONG" else "BUY"
+                if o_side != exit_side:
+                    continue
+
+                # Try to match SL (stop order)
+                if sl_price > 0 and (o_type.startswith("STOP") or stop_price > 0):
+                    cand = stop_price if stop_price > 0 else price
+                    if cand > 0 and abs(cand - sl_price) <= tol:
+                        await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, sl_order_id=str(oid))
+                        await asyncio.to_thread(self.lifecycle_store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
+                        matched_any = True
+                        continue
+
+                # Try to match TP (limit order)
+                if o_type in {"LIMIT", "TAKE_PROFIT", "TAKE_PROFIT_LIMIT"} and price > 0:
+                    for lvl in tp_levels:
+                        lvl_price = _d(lvl.get("price"), Decimal("0"))
+                        if lvl_price > 0 and abs(price - lvl_price) <= tol:
+                            if not lvl.get("order_id"):
+                                lvl["order_id"] = str(oid)
+                                await asyncio.to_thread(
+                                    self.lifecycle_store.upsert_order_tracker,
+                                    ssot_id=ssot_id,
+                                    order_id=str(oid),
+                                    kind="TP",
+                                    level_index=int(lvl.get("index", 0)),
+                                )
+                                matched_any = True
+                            break
+
+            if matched_any:
+                await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, tp_levels=tp_levels)
+            else:
+                # No tracked orders and no match -> ambiguous
+                has_any_tracked = bool(pos.get("sl_order_id")) or any((lvl or {}).get("order_id") for lvl in (pos.get("tp_levels") or []))
+                if not has_any_tracked:
+                    if (pos.get("status") or "").upper() == "NEEDS_MANUAL_PROTECTION":
+                        return False
+                    await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
+                    await self._send_telegram(
+                        text=(
+                            "⚠️ Stage 7: Protection ambiguous (open orders exist)\n"
+                            f"ssot_id={ssot_id}\n"
+                            f"symbol={symbol}\n"
+                            f"side={side_norm}\n"
+                            "action=NOT placing TP/SL automatically\n"
+                            f"time_utc={_utc_now_iso()}"
+                        ),
+                        ssot_id=ssot_id,
+                    )
                     return False
-                await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
-                await self._send_telegram(
-                    text=(
-                        "⚠️ Stage 7: Protection ambiguous (open orders exist)\n"
-                        f"ssot_id={ssot_id}\n"
-                        f"symbol={symbol}\n"
-                        f"side={side_norm}\n"
-                        "action=NOT placing TP/SL automatically\n"
-                        f"time_utc={_utc_now_iso()}"
-                    ),
-                    ssot_id=ssot_id,
-                )
-                return False
 
         repaired = False
 
@@ -636,7 +688,6 @@ class Stage7Maintenance:
                     side=tp_side,
                     price=price,
                     quantity=q,
-                    leverage=Decimal("1"),
                     post_only=False,
                     time_in_force="GTC",
                     reduce_only=True,

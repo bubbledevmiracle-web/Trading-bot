@@ -65,7 +65,7 @@ ACCOUNT_BALANCE_BASELINE = Decimal("402.10")  # USDT
 RISK_PER_TRADE = Decimal("0.02")  # 2% per trade
 INITIAL_MARGIN_PLAN = Decimal("20.00")  # USDT per trade
 MAX_LEVERAGE = Decimal("50.00")
-MIN_LEVERAGE = Decimal("1.00")
+MIN_LEVERAGE = Decimal("6.00")
 
 # Order Cleanup Timeouts
 TIMEOUT_SHORT = timedelta(hours=24)  # Hanging opening orders

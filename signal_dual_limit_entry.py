@@ -325,7 +325,6 @@ class DualLimitEntryExecutor:
                         side=side,
                         price=pr_safe,
                         quantity=remaining,
-                        leverage=leverage,
                         post_only=True,
                         time_in_force="GTC",
                         reduce_only=False,

@@ -39,6 +39,7 @@ class Stage2CompletedRow:
     sl_price: str
     tp_prices: List[str]
     stage2_json: Optional[str]
+    signal_type: Optional[str] = None
 
 
 class LifecycleStore:
@@ -98,12 +99,17 @@ class LifecycleStore:
                     symbol                  TEXT NOT NULL,
                     side                    TEXT NOT NULL,
                     status                  TEXT NOT NULL,
+                    signal_type             TEXT,
                     planned_qty             TEXT,
                     remaining_qty           TEXT,
+                    position_qty            TEXT,
                     avg_entry               TEXT,
+                    realized_pnl            TEXT,
+                    unrealized_pnl          TEXT,
                     sl_price                TEXT,
                     sl_order_id             TEXT,
                     tp_levels_json          TEXT NOT NULL,
+                    tp_active_order_ids_json TEXT,
                     created_at_utc          TEXT NOT NULL,
                     updated_at_utc          TEXT NOT NULL,
                     last_reconcile_at_utc   TEXT
@@ -118,6 +124,13 @@ class LifecycleStore:
                     last_status             TEXT,
                     updated_at_utc          TEXT NOT NULL,
                     FOREIGN KEY(ssot_id) REFERENCES stage4_positions(ssot_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS stage4_exec_dedup (
+                    order_id                TEXT NOT NULL,
+                    exec_id                 TEXT NOT NULL,
+                    seen_at_utc             TEXT NOT NULL,
+                    PRIMARY KEY(order_id, exec_id)
                 );
 
                 CREATE TABLE IF NOT EXISTS stage5_locks (
@@ -162,6 +175,12 @@ class LifecycleStore:
             
             # Pyramid/scaling state (Stage 4.5)
             self._ensure_column("stage4_positions", "pyramid_state_json", "TEXT")
+            # Stage 4 WS/REST state fields
+            self._ensure_column("stage4_positions", "signal_type", "TEXT")
+            self._ensure_column("stage4_positions", "position_qty", "TEXT")
+            self._ensure_column("stage4_positions", "realized_pnl", "TEXT")
+            self._ensure_column("stage4_positions", "unrealized_pnl", "TEXT")
+            self._ensure_column("stage4_positions", "tp_active_order_ids_json", "TEXT")
             
             self._conn.commit()
 
@@ -195,7 +214,8 @@ class LifecycleStore:
                         q.entry_price,
                         q.sl_price,
                         q.tp_prices_json,
-                        q.stage2_json
+                        q.stage2_json,
+                        q.signal_type
                     FROM ssot_queue q
                     LEFT JOIN stage4_positions p
                            ON p.ssot_id = q.id
@@ -217,6 +237,7 @@ class LifecycleStore:
                             sl_price=r["sl_price"],
                             tp_prices=json.loads(r["tp_prices_json"] or "[]"),
                             stage2_json=r["stage2_json"],
+                            signal_type=r["signal_type"],
                         )
                     )
                 return out
@@ -233,10 +254,15 @@ class LifecycleStore:
         symbol: str,
         side: str,
         status: str,
+        signal_type: Optional[str] = None,
         planned_qty: Optional[str],
         remaining_qty: Optional[str],
+        position_qty: Optional[str] = None,
         avg_entry: Optional[str],
+        realized_pnl: Optional[str] = None,
+        unrealized_pnl: Optional[str] = None,
         sl_price: Optional[str],
+        tp_active_order_ids: Optional[List[str]] = None,
         signal_entry_price: Optional[str] = None,
         signal_sl_price: Optional[str] = None,
         signal_leverage: Optional[str] = None,
@@ -259,24 +285,30 @@ class LifecycleStore:
                     """
                     INSERT OR IGNORE INTO stage4_positions(
                         ssot_id, symbol, side, status,
-                        planned_qty, remaining_qty, avg_entry,
+                        signal_type,
+                        planned_qty, remaining_qty, position_qty, avg_entry,
+                        realized_pnl, unrealized_pnl,
                         sl_price, sl_order_id,
                         signal_entry_price, signal_sl_price, signal_leverage,
                         orig_entry_price, orig_sl_price, orig_leverage,
                         stage5_is_hedge_armed, stage5_reentry_attempt_count,
                         stage5_hedge_armed, stage5_reentry_attempts,
-                        tp_levels_json,
+                        tp_levels_json, tp_active_order_ids_json,
                         created_at_utc, updated_at_utc, last_reconcile_at_utc
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 1, 0, 1, 0, ?, ?, ?, NULL);
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, 1, 0, 1, 0, ?, ?, ?, ?, NULL);
                     """,
                     (
                         int(ssot_id),
                         str(symbol),
                         str(side),
                         str(status),
+                        signal_type,
                         planned_qty,
                         remaining_qty,
+                        position_qty,
                         avg_entry,
+                        realized_pnl,
+                        unrealized_pnl,
                         sl_price,
                         signal_entry_price,
                         signal_sl_price,
@@ -285,6 +317,7 @@ class LifecycleStore:
                         orig_sl_price,
                         orig_leverage,
                         json.dumps(tp_levels, separators=(",", ":"), ensure_ascii=False),
+                        json.dumps(tp_active_order_ids or [], separators=(",", ":"), ensure_ascii=False),
                         now,
                         now,
                     ),
@@ -307,6 +340,30 @@ class LifecycleStore:
                     return None
                 d = dict(r)
                 d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                d["tp_active_order_ids"] = json.loads(d.get("tp_active_order_ids_json") or "[]")
+                d["pyramid_state"] = json.loads(d.get("pyramid_state_json") or "{}")
+                return d
+            finally:
+                cur.close()
+
+    def get_position_by_symbol_side(self, *, symbol: str, side: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                r = cur.execute(
+                    """
+                    SELECT * FROM stage4_positions
+                    WHERE symbol = ? AND UPPER(side) = ? AND UPPER(status) != 'CLOSED'
+                    ORDER BY ssot_id DESC
+                    LIMIT 1;
+                    """,
+                    (str(symbol), str(side).upper()),
+                ).fetchone()
+                if r is None:
+                    return None
+                d = dict(r)
+                d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                d["tp_active_order_ids"] = json.loads(d.get("tp_active_order_ids_json") or "[]")
                 d["pyramid_state"] = json.loads(d.get("pyramid_state_json") or "{}")
                 return d
             finally:
@@ -328,6 +385,7 @@ class LifecycleStore:
                 for r in rows:
                     d = dict(r)
                     d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                    d["tp_active_order_ids"] = json.loads(d.get("tp_active_order_ids_json") or "[]")
                     d["pyramid_state"] = json.loads(d.get("pyramid_state_json") or "{}")
                     out.append(d)
                 return out
@@ -349,6 +407,7 @@ class LifecycleStore:
                 for r in rows:
                     d = dict(r)
                     d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                    d["tp_active_order_ids"] = json.loads(d.get("tp_active_order_ids_json") or "[]")
                     d["pyramid_state"] = json.loads(d.get("pyramid_state_json") or "{}")
                     out.append(d)
                 return out
@@ -372,6 +431,7 @@ class LifecycleStore:
                 for r in rows:
                     d = dict(r)
                     d["tp_levels"] = json.loads(d.get("tp_levels_json") or "[]")
+                    d["tp_active_order_ids"] = json.loads(d.get("tp_active_order_ids_json") or "[]")
                     d["pyramid_state"] = json.loads(d.get("pyramid_state_json") or "{}")
                     out.append(d)
                 return out
@@ -404,11 +464,16 @@ class LifecycleStore:
         *,
         ssot_id: int,
         status: Optional[str] = None,
+        signal_type: Optional[str] = None,
         planned_qty: Optional[str] = None,
         remaining_qty: Optional[str] = None,
+        position_qty: Optional[str] = None,
         avg_entry: Optional[str] = None,
+        realized_pnl: Optional[str] = None,
+        unrealized_pnl: Optional[str] = None,
         sl_order_id: Optional[str] = None,
         sl_price: Optional[str] = None,
+        tp_active_order_ids: Optional[List[str]] = None,
         signal_entry_price: Optional[str] = None,
         signal_sl_price: Optional[str] = None,
         signal_leverage: Optional[str] = None,
@@ -436,16 +501,26 @@ class LifecycleStore:
                 updates: List[Tuple[str, Any]] = []
                 if status is not None:
                     updates.append(("status", status))
+                if signal_type is not None:
+                    updates.append(("signal_type", signal_type))
                 if planned_qty is not None:
                     updates.append(("planned_qty", planned_qty))
                 if remaining_qty is not None:
                     updates.append(("remaining_qty", remaining_qty))
+                if position_qty is not None:
+                    updates.append(("position_qty", position_qty))
                 if avg_entry is not None:
                     updates.append(("avg_entry", avg_entry))
+                if realized_pnl is not None:
+                    updates.append(("realized_pnl", realized_pnl))
+                if unrealized_pnl is not None:
+                    updates.append(("unrealized_pnl", unrealized_pnl))
                 if sl_order_id is not None:
                     updates.append(("sl_order_id", sl_order_id))
                 if sl_price is not None:
                     updates.append(("sl_price", sl_price))
+                if tp_active_order_ids is not None:
+                    updates.append(("tp_active_order_ids_json", json.dumps(tp_active_order_ids, separators=(",", ":"), ensure_ascii=False)))
                 if signal_entry_price is not None:
                     updates.append(("signal_entry_price", signal_entry_price))
                 if signal_sl_price is not None:
@@ -606,6 +681,18 @@ class LifecycleStore:
             finally:
                 cur.close()
 
+    def get_order_tracker(self, *, order_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                r = cur.execute(
+                    "SELECT order_id, ssot_id, kind, level_index, last_executed_qty, last_status FROM stage4_order_tracker WHERE order_id = ?;",
+                    (str(order_id),),
+                ).fetchone()
+                return dict(r) if r else None
+            finally:
+                cur.close()
+
     def list_tracked_orders(self, *, limit: int = 500) -> List[Dict[str, Any]]:
         with self._lock:
             cur = self._conn.cursor()
@@ -669,6 +756,24 @@ class LifecycleStore:
                     (str(last_executed_qty), last_status, _utc_now_iso(), str(order_id)),
                 )
                 self._conn.commit()
+            finally:
+                cur.close()
+
+    def record_execution_if_new(self, *, order_id: str, exec_id: str) -> bool:
+        """
+        Record execution idempotently. Returns True if newly recorded.
+        """
+        if not order_id or not exec_id:
+            return False
+        with self._lock:
+            cur = self._conn.cursor()
+            try:
+                cur.execute(
+                    "INSERT OR IGNORE INTO stage4_exec_dedup(order_id, exec_id, seen_at_utc) VALUES (?, ?, ?);",
+                    (str(order_id), str(exec_id), _utc_now_iso()),
+                )
+                self._conn.commit()
+                return cur.rowcount > 0
             finally:
                 cur.close()
 
