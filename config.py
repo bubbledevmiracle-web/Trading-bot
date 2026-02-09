@@ -25,6 +25,7 @@ TELEGRAM_PHONE_NUMBER = "+46 70 368 9310"
 TELEGRAM_SESSION_FILE = "telegram_session"
 
 # Source Channels to Monitor (5 channels - all must be verified)
+    
 SOURCE_CHANNELS = {
     "CRYPTORAKETEN": "-1002290339976",
     "SMART_CRYPTO": "-1002339729195",
@@ -258,6 +259,9 @@ BINGX_LOG_SIGNATURE_DETAILS = False
 # Enable Stage 7 maintenance jobs (cleanup + reconcile/restore)
 STAGE7_ENABLE = True
 
+# Symbols to not send "Unmapped open position" alert for (e.g. manually held positions)
+STAGE7_IGNORE_UNMAPPED_SYMBOLS = ["BTCUSDT"]
+
 # Timers (background jobs)
 STAGE7_RECONCILE_INTERVAL_SECONDS = 120          # restore/reconcile protections
 STAGE7_CLEANUP_SHORT_INTERVAL_SECONDS = 900      # 24h stale entry cleanup scan
@@ -306,4 +310,3 @@ def get_config_summary() -> dict:
 
 # Initialize directories on import
 ensure_directories()
-

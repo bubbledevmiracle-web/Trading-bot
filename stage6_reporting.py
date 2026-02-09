@@ -308,7 +308,8 @@ class Stage6ReportScheduler:
         self.telemetry = telemetry
         self.reporter = reporter
         self.telegram_client = telegram_client
-        self.telegram_chat_id = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        _pid = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        self.telegram_chat_id = int(_pid) if _pid is not None else None
         self.state_path = Path(state_path or (config.LOG_DIR / "stage6_report_state.json"))
 
     def _load_state(self) -> dict:

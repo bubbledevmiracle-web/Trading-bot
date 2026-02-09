@@ -65,10 +65,14 @@ class DualLimitEntryExecutor:
         """
         poll_s = max(int(getattr(config, "STAGE2_POLL_INTERVAL_SECONDS", 3)), 1)
         while True:
-            sig = await asyncio.to_thread(self.store.claim_next_signal, worker_id=self.worker_id)
-            if sig is None:
-                await asyncio.sleep(poll_s)
-                continue
+            try:
+                sig = await asyncio.to_thread(self.store.claim_next_signal, worker_id=self.worker_id)
+                if sig is None:
+                    await asyncio.sleep(poll_s)
+                    continue
+            except asyncio.CancelledError:
+                logger.info("Stage 2 run loop cancelled")
+                break
 
             try:
                 await asyncio.to_thread(

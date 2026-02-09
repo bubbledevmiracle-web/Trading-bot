@@ -37,7 +37,7 @@ from pyrogram.types import Message
 
 # Import configuration and startup checker
 import config
-from startup_checker import StartupChecker
+from startup_checker import StartupChecker, warmup_telegram_peers
 from ssot_store import SignalStore
 from signal_ingestion import SignalIngestionNormalizerProcessor
 from signal_parser import SignalParser
@@ -327,6 +327,7 @@ class TelegramForwarder:
         logger.info("Starting Telegram client...")
         await self.app.start()
         logger.info("✅ Telegram client started successfully")
+        telegram_warmup_results = await warmup_telegram_peers(self.app)
 
         # Initialize SSoT store (SQLite) early so ingestion can persist immediately
         if config.SSOT_ENABLE:
@@ -355,7 +356,7 @@ class TelegramForwarder:
                     ssot_store=self.ssot_store,
                     lifecycle_store=self._stage4_store,
                     telegram_client=self.app,
-                    telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                    telegram_chat_id=int(config.PERSONAL_CHANNEL_ID),
                 )
 
             self.stage1 = SignalIngestionNormalizerProcessor(
@@ -387,7 +388,7 @@ class TelegramForwarder:
                         store=self._stage4_store,
                         bingx=self._bingx,
                         telegram_client=self.app,
-                        telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                        telegram_chat_id=int(config.PERSONAL_CHANNEL_ID),
                         telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
                         worker_id="stage4-main",
                     )
@@ -402,7 +403,7 @@ class TelegramForwarder:
                             stage2=self._stage2,
                             stage4_manager=self._stage4,
                             telegram_client=self.app,
-                            telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                            telegram_chat_id=int(config.PERSONAL_CHANNEL_ID),
                             telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
                             worker_id="stage5-main",
                         )
@@ -426,7 +427,7 @@ class TelegramForwarder:
                         ssot_store=self.ssot_store,
                         lifecycle_store=self._stage4_store,
                         telegram_client=self.app,
-                        telegram_chat_id=config.PERSONAL_CHANNEL_ID,
+                        telegram_chat_id=int(config.PERSONAL_CHANNEL_ID),
                         telemetry=(self._stage6.telemetry if self._stage6 is not None else None),
                         stage4_manager=self._stage4,
                         worker_id="stage7-maintenance",
@@ -442,7 +443,9 @@ class TelegramForwarder:
         logger.info("="*60 + "\n")
         
         self.startup_checker = StartupChecker()
-        stage0_success, stage0_report = await self.startup_checker.verify_all(self.app)
+        stage0_success, stage0_report = await self.startup_checker.verify_all(
+            self.app, telegram_warmup_results=telegram_warmup_results
+        )
         
         # Send startup notification to private channel
         await self.startup_checker.send_startup_notification(
@@ -626,6 +629,8 @@ class TelegramForwarder:
             self._stage2_task.cancel()
             try:
                 await self._stage2_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage2_task = None
@@ -636,6 +641,8 @@ class TelegramForwarder:
             self._stage4_task.cancel()
             try:
                 await self._stage4_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage4_task = None
@@ -644,6 +651,8 @@ class TelegramForwarder:
             self._stage5_task.cancel()
             try:
                 await self._stage5_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage5_task = None
@@ -653,6 +662,8 @@ class TelegramForwarder:
             self._pyramid_task.cancel()
             try:
                 await self._pyramid_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._pyramid_task = None
@@ -662,6 +673,8 @@ class TelegramForwarder:
             self._stage7_task.cancel()
             try:
                 await self._stage7_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage7_task = None
@@ -670,6 +683,8 @@ class TelegramForwarder:
             self._test_extract_task.cancel()
             try:
                 await self._test_extract_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._test_extract_task = None
@@ -680,6 +695,8 @@ class TelegramForwarder:
             self._stage6.watchdog_task.cancel()
             try:
                 await self._stage6.watchdog_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage6.watchdog_task = None
@@ -687,6 +704,8 @@ class TelegramForwarder:
             self._stage6.report_task.cancel()
             try:
                 await self._stage6.report_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
             self._stage6.report_task = None
@@ -796,13 +815,13 @@ class TelegramForwarder:
                     if self._stage6 is not None:
                         await send_telegram_with_telemetry(
                             telegram_client=self.app,
-                            chat_id=config.PERSONAL_CHANNEL_ID,
+                            chat_id=int(config.PERSONAL_CHANNEL_ID),
                             text=txt,
                             telemetry=self._stage6.telemetry,
-                            correlation=TelemetryCorrelation(bot_order_id="stage1-blocked", telegram_chat_id=config.PERSONAL_CHANNEL_ID),
+                            correlation=TelemetryCorrelation(bot_order_id="stage1-blocked", telegram_chat_id=int(config.PERSONAL_CHANNEL_ID)),
                         )
                     else:
-                        await self.app.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=txt)
+                        await self.app.send_message(chat_id=int(config.PERSONAL_CHANNEL_ID), text=txt)
                 except Exception as e:
                     logger.error(f"Failed to send SIGNAL BLOCKERAD notification: {e}")
             else:
@@ -818,13 +837,13 @@ class TelegramForwarder:
                     if self._stage6 is not None:
                         await send_telegram_with_telemetry(
                             telegram_client=self.app,
-                            chat_id=config.PERSONAL_CHANNEL_ID,
+                            chat_id=int(config.PERSONAL_CHANNEL_ID),
                             text=txt,
                             telemetry=self._stage6.telemetry,
-                            correlation=TelemetryCorrelation(bot_order_id="stage1-invalid", telegram_chat_id=config.PERSONAL_CHANNEL_ID),
+                            correlation=TelemetryCorrelation(bot_order_id="stage1-invalid", telegram_chat_id=int(config.PERSONAL_CHANNEL_ID)),
                         )
                     else:
-                        await self.app.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=txt)
+                        await self.app.send_message(chat_id=int(config.PERSONAL_CHANNEL_ID), text=txt)
                 except Exception as e:
                     logger.error(f"Failed to send SIGNAL OGILTIG notification: {e}")
             

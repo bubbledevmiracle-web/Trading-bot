@@ -44,6 +44,30 @@ from stage6_telegram import send_telegram_with_telemetry
 
 logger = logging.getLogger(__name__)
 
+
+async def warmup_telegram_peers(telegram_client: Client) -> Dict:
+    dialog_ids = []
+    async for dialog in telegram_client.get_dialogs(limit=500):
+        chat = dialog.chat
+        cid = getattr(chat, "id", None)
+        title = getattr(chat, "title", None) or getattr(chat, "first_name", "")
+        dialog_ids.append((cid, title))
+    logger.info("Telegram dialogs (id, title) for ID confirmation: %s", dialog_ids)
+    channels = {}
+    for channel_name, channel_id in config.SOURCE_CHANNELS.items():
+        try:
+            chat = await telegram_client.get_chat(int(channel_id))
+            channels[channel_name] = {"chat": chat, "error": None}
+        except Exception as e:
+            channels[channel_name] = {"chat": None, "error": str(e)}
+    try:
+        personal_chat = await telegram_client.get_chat(int(config.PERSONAL_CHANNEL_ID))
+        personal = {"chat": personal_chat, "error": None}
+    except Exception as e:
+        personal = {"chat": None, "error": str(e)}
+    return {"channels": channels, "personal": personal}
+
+
 # ============================================================================
 # STARTUP CHECKER CLASS
 # ============================================================================
@@ -426,12 +450,15 @@ class StartupChecker:
     # STAGE 0.3 - TELEGRAM/PYROGRAM CONNECTION
     # ========================================================================
     
-    async def check_telegram(self, telegram_client: Client) -> Tuple[bool, Dict]:
+    async def check_telegram(
+        self, telegram_client: Client, warmup_results: Optional[Dict] = None
+    ) -> Tuple[bool, Dict]:
         """
         Connect to Telegram and verify all 5 whitelisted channels.
         
         Args:
             telegram_client: Pyrogram Client instance
+            warmup_results: Optional result from warmup_telegram_peers()
             
         Returns:
             (success, telegram_data)
@@ -439,7 +466,6 @@ class StartupChecker:
         try:
             self.telegram_client = telegram_client
             
-            # Verify client is started
             if not telegram_client.is_connected:
                 self._log_check(
                     "Telegram Connection",
@@ -456,77 +482,83 @@ class StartupChecker:
                 "total_channels": len(config.SOURCE_CHANNELS)
             }
             
-            # Verify each source channel
-            for channel_name, channel_id in config.SOURCE_CHANNELS.items():
+            if warmup_results is not None:
+                for channel_name, channel_id in config.SOURCE_CHANNELS.items():
+                    entry = warmup_results.get("channels", {}).get(channel_name, {})
+                    chat, err = entry.get("chat"), entry.get("error")
+                    if chat is not None:
+                        telegram_data["channels_verified"][channel_name] = {
+                            "id": channel_id,
+                            "title": chat.title if hasattr(chat, "title") else channel_id,
+                            "accessible": True,
+                        }
+                        logger.info(
+                            "✅ Channel verified: %s (%s)",
+                            channel_name,
+                            getattr(chat, "title", channel_id),
+                        )
+                    else:
+                        telegram_data["channels_failed"][channel_name] = {
+                            "id": channel_id,
+                            "error": err or "Resolution failed",
+                        }
+                        logger.error("❌ Channel failed: %s (%s): %s", channel_name, channel_id, err)
+                personal_entry = warmup_results.get("personal", {})
+                personal_chat, personal_err = personal_entry.get("chat"), personal_entry.get("error")
+                if personal_chat is not None:
+                    telegram_data["personal_channel"] = {
+                        "id": config.PERSONAL_CHANNEL_ID,
+                        "title": getattr(personal_chat, "title", config.PERSONAL_CHANNEL_ID),
+                        "accessible": True,
+                    }
+                    logger.info(
+                        "✅ Personal channel verified: %s",
+                        getattr(personal_chat, "title", config.PERSONAL_CHANNEL_ID),
+                    )
+                else:
+                    telegram_data["personal_channel"] = {
+                        "id": config.PERSONAL_CHANNEL_ID,
+                        "accessible": False,
+                        "error": personal_err or "Resolution failed",
+                    }
+                    logger.warning("⚠️ Personal channel not accessible: %s", personal_err)
+            else:
+                async for _ in telegram_client.get_dialogs(limit=100):
+                    pass
+                
+                for channel_name, channel_id in config.SOURCE_CHANNELS.items():
+                    try:
+                        chat = await telegram_client.get_chat(int(channel_id))
+                        telegram_data["channels_verified"][channel_name] = {
+                            "id": channel_id,
+                            "title": chat.title if hasattr(chat, 'title') else channel_id,
+                            "accessible": True
+                        }
+                        logger.info(f"✅ Channel verified: {channel_name} ({chat.title if hasattr(chat, 'title') else channel_id})")
+                    except Exception as e:
+                        telegram_data["channels_failed"][channel_name] = {
+                            "id": channel_id,
+                            "error": str(e)
+                        }
+                        logger.error(f"❌ Error accessing {channel_name}: {e}")
                 try:
-                    chat = await telegram_client.get_chat(channel_id)
-                    telegram_data["channels_verified"][channel_name] = {
-                        "id": channel_id,
-                        "title": chat.title if hasattr(chat, 'title') else channel_id,
+                    personal_chat = await telegram_client.get_chat(int(config.PERSONAL_CHANNEL_ID))
+                    telegram_data["personal_channel"] = {
+                        "id": config.PERSONAL_CHANNEL_ID,
+                        "title": personal_chat.title if hasattr(personal_chat, 'title') else config.PERSONAL_CHANNEL_ID,
                         "accessible": True
                     }
-                    logger.info(f"✅ Channel verified: {channel_name} ({chat.title if hasattr(chat, 'title') else channel_id})")
-                    
-                except (PeerIdInvalid, ChannelPrivate):
-                    # Channel not in session cache - this might be OK for private channels
-                    telegram_data["channels_failed"][channel_name] = {
-                        "id": channel_id,
-                        "error": "Not in session cache (might be accessible later)"
-                    }
-                    self._log_warning(
-                        "Telegram Channel Check",
-                        f"{channel_name} ({channel_id}): Not in session cache - will be accessible when first message arrives"
-                    )
-                    
-                except UsernameNotOccupied:
-                    telegram_data["channels_failed"][channel_name] = {
-                        "id": channel_id,
-                        "error": "Username not found"
-                    }
-                    logger.error(f"❌ Channel not found: {channel_name} ({channel_id})")
-                    
-                except UserNotParticipant:
-                    telegram_data["channels_failed"][channel_name] = {
-                        "id": channel_id,
-                        "error": "Not a participant"
-                    }
-                    logger.error(f"❌ Not a member: {channel_name} ({channel_id})")
-                    
+                    logger.info(f"✅ Personal channel verified: {personal_chat.title if hasattr(personal_chat, 'title') else config.PERSONAL_CHANNEL_ID}")
                 except Exception as e:
-                    telegram_data["channels_failed"][channel_name] = {
-                        "id": channel_id,
+                    telegram_data["personal_channel"] = {
+                        "id": config.PERSONAL_CHANNEL_ID,
+                        "accessible": False,
                         "error": str(e)
                     }
-                    logger.error(f"❌ Error accessing {channel_name}: {e}")
-            
-            # Verify personal channel
-            try:
-                personal_chat = await telegram_client.get_chat(config.PERSONAL_CHANNEL_ID)
-                telegram_data["personal_channel"] = {
-                    "id": config.PERSONAL_CHANNEL_ID,
-                    "title": personal_chat.title if hasattr(personal_chat, 'title') else config.PERSONAL_CHANNEL_ID,
-                    "accessible": True
-                }
-                logger.info(f"✅ Personal channel verified: {personal_chat.title if hasattr(personal_chat, 'title') else config.PERSONAL_CHANNEL_ID}")
-                
-            except (PeerIdInvalid, ChannelPrivate):
-                telegram_data["personal_channel"] = {
-                    "id": config.PERSONAL_CHANNEL_ID,
-                    "accessible": False,
-                    "error": "Not in session cache (will be accessible when sending)"
-                }
-                self._log_warning(
-                    "Telegram Personal Channel",
-                    f"Personal channel not in session cache - will be accessible when sending first message"
-                )
-            
-            # Determine success
-            # We allow partial failures for private channels (they might be accessible later)
+                    logger.error(f"❌ Personal channel not accessible: {e}")
             verified_count = len(telegram_data["channels_verified"])
             failed_count = len(telegram_data["channels_failed"])
-            
             if verified_count == 0 and failed_count > 0:
-                # All channels failed - this is a problem
                 self._log_check(
                     "Telegram Check",
                     False,
@@ -534,18 +566,15 @@ class StartupChecker:
                     telegram_data
                 )
                 return False, telegram_data
-            
-            # At least some channels are accessible
             if failed_count > 0:
                 self._log_warning(
                     "Telegram Check",
-                    f"Some channels not in cache ({verified_count}/{telegram_data['total_channels']} verified)"
+                    f"Some channels not accessible ({verified_count}/{telegram_data['total_channels']} verified)"
                 )
-            
             self._log_check(
                 "Telegram Check",
                 True,
-                f"Telegram connected ({verified_count}/{telegram_data['total_channels']} channels verified, {failed_count} not in cache)",
+                f"Telegram connected ({verified_count}/{telegram_data['total_channels']} channels verified, {failed_count} failed)",
                 telegram_data
             )
             return True, telegram_data
@@ -763,12 +792,15 @@ class StartupChecker:
     # STAGE 0.6 - MASTER VERIFICATION
     # ========================================================================
     
-    async def verify_all(self, telegram_client: Client) -> Tuple[bool, Dict]:
+    async def verify_all(
+        self, telegram_client: Client, telegram_warmup_results: Optional[Dict] = None
+    ) -> Tuple[bool, Dict]:
         """
         Master verification function - runs all Stage 0 checks.
         
         Args:
             telegram_client: Pyrogram Client instance
+            telegram_warmup_results: Optional result from warmup_telegram_peers()
             
         Returns:
             (success, verification_report)
@@ -788,7 +820,9 @@ class StartupChecker:
         bingx_ws_ok, bingx_ws_data = await self.check_bingx_websocket()
         
         # Stage 0.3 - Telegram
-        telegram_ok, telegram_data = await self.check_telegram(telegram_client)
+        telegram_ok, telegram_data = await self.check_telegram(
+            telegram_client, warmup_results=telegram_warmup_results
+        )
         
         # Stage 0.4 - Baseline Data
         baseline_ok, baseline_data = self.fetch_baseline_data()
@@ -868,13 +902,13 @@ class StartupChecker:
             if telemetry is not None:
                 await send_telegram_with_telemetry(
                     telegram_client=telegram_client,
-                    chat_id=config.PERSONAL_CHANNEL_ID,
+                    chat_id=int(config.PERSONAL_CHANNEL_ID),
                     text=message,
                     telemetry=telemetry,
                     correlation=TelemetryCorrelation(bot_order_id="stage0-startup"),
                 )
             else:
-                await telegram_client.send_message(chat_id=config.PERSONAL_CHANNEL_ID, text=message)
+                await telegram_client.send_message(chat_id=int(config.PERSONAL_CHANNEL_ID), text=message)
             
             logger.info("✅ Startup notification sent to personal channel")
             return True

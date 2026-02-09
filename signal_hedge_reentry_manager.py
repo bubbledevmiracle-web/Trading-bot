@@ -139,7 +139,8 @@ class Stage5HedgeReentryManager:
         self.stage2 = stage2
         self.stage4_manager = stage4_manager  # Stage4LifecycleManager instance (used for TP/SL placement)
         self.telegram_client = telegram_client
-        self.telegram_chat_id = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        _pid = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        self.telegram_chat_id = int(_pid) if _pid is not None else None
         self.telemetry = telemetry
         self.worker_id = worker_id
 

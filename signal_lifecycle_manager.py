@@ -80,7 +80,8 @@ class Stage4LifecycleManager:
         self.store = store
         self.bingx = bingx
         self.telegram_client = telegram_client
-        self.telegram_chat_id = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        _pid = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        self.telegram_chat_id = int(_pid) if _pid is not None else None
         self.telemetry = telemetry
         self.worker_id = worker_id
 
@@ -279,36 +280,54 @@ class Stage4LifecycleManager:
 
             await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, tp_levels=tp_levels, tp_active_order_ids=tp_active_oids)
 
-        # 2) Place SL reduce-only STOP_MARKET (best-effort)
         sl_price = _d(pos.get("sl_price"), Decimal("0"))
         if sl_price > 0 and not pos.get("sl_order_id"):
-            sl_side = "SELL" if side_norm == "LONG" else "BUY"
-            resp = await asyncio.to_thread(
-                self.bingx.place_stop_market_order,
-                symbol=symbol,
-                side=sl_side,
-                stop_price=sl_price,
-                quantity=remaining,
-                reduce_only=True,
-                position_side=side_norm,
+            current_price = await asyncio.to_thread(self.bingx.get_current_price, symbol)
+            sl_valid = (
+                (side_norm == "LONG" and sl_price < current_price)
+                or (side_norm == "SHORT" and sl_price > current_price)
             )
-            oid = resp.get("orderId")
-            if oid:
-                await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, sl_order_id=str(oid))
-                await asyncio.to_thread(self.store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
-            else:
-                # Can't confirm protection -> alert and mark state
+            if not sl_valid and current_price > 0:
                 await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
-                await self._send_telegram(
-                    f"⚠️ Stage4: SL placement failed (needs manual protection)\n"
-                    f"ssot_id={ssot_id}\n"
-                    f"symbol={symbol}\n"
-                    f"side={side_norm}\n"
-                    f"sl={sl_price}\n"
-                    f"error={resp.get('error') or resp.get('raw')}"
-                    ,
-                    ssot_id=ssot_id,
+                if (pos.get("status") or "").upper() != "NEEDS_MANUAL_PROTECTION":
+                    reason = "SL above current (LONG) - set manual SL below current" if side_norm == "LONG" else "SL below current (SHORT) - set manual SL above current"
+                    await self._send_telegram(
+                        f"⚠️ Stage4: SL not placed (needs manual protection)\n"
+                        f"ssot_id={ssot_id}\n"
+                        f"symbol={symbol}\n"
+                        f"side={side_norm}\n"
+                        f"sl={sl_price}\n"
+                        f"current={current_price}\n"
+                        f"reason={reason}",
+                        ssot_id=ssot_id,
+                    )
+            else:
+                sl_side = "SELL" if side_norm == "LONG" else "BUY"
+                resp = await asyncio.to_thread(
+                    self.bingx.place_stop_market_order,
+                    symbol=symbol,
+                    side=sl_side,
+                    stop_price=sl_price,
+                    quantity=remaining,
+                    reduce_only=True,
+                    position_side=side_norm,
                 )
+                oid = resp.get("orderId")
+                if oid:
+                    await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, sl_order_id=str(oid))
+                    await asyncio.to_thread(self.store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
+                else:
+                    await asyncio.to_thread(self.store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
+                    if (pos.get("status") or "").upper() != "NEEDS_MANUAL_PROTECTION":
+                        await self._send_telegram(
+                            f"⚠️ Stage4: SL placement failed (needs manual protection)\n"
+                            f"ssot_id={ssot_id}\n"
+                            f"symbol={symbol}\n"
+                            f"side={side_norm}\n"
+                            f"sl={sl_price}\n"
+                            f"error={resp.get('error') or resp.get('raw')}",
+                            ssot_id=ssot_id,
+                        )
 
     # ------------------------------------------------------------------
     # WebSocket-first monitoring
@@ -618,8 +637,9 @@ class Stage4LifecycleManager:
                     continue
                 if oid not in open_order_ids:
                     st = await asyncio.to_thread(self.bingx.get_order_status, self.bingx._format_symbol(symbol), oid)
-                    st_status = (st.get("status") or "").upper() if st else None
-                    if st_status in {"FILLED"}:
+                    st_status = (st.get("status") or st.get("orderStatus") or "").upper() if st else None
+                    executed_qty = _d(st.get("executedQty") or st.get("cumQty") or st.get("filledQty"), Decimal("0")) if st else Decimal("0")
+                    if st_status in {"FILLED", "CLOSED", "DONE"} or executed_qty > 0:
                         lvl["status"] = "COMPLETED"
                         tp_changed = True
                     else:
@@ -643,18 +663,19 @@ class Stage4LifecycleManager:
             sl_oid = pos.get("sl_order_id")
             if sl_oid and str(sl_oid) not in open_order_ids:
                 st = await asyncio.to_thread(self.bingx.get_order_status, self.bingx._format_symbol(symbol), str(sl_oid))
-                st_status = (st.get("status") or "").upper() if st else None
-                if st_status not in {"FILLED"}:
+                st_status = (st.get("status") or st.get("orderStatus") or "").upper() if st else None
+                if st_status not in {"FILLED", "CLOSED", "DONE"}:
                     await asyncio.to_thread(self.store.update_position, ssot_id=int(pos["ssot_id"]), status="NEEDS_MANUAL_PROTECTION")
-                    await self._send_telegram(
-                        f"⚠️ Stage4: SL order missing (REST)\n"
-                        f"ssot_id={pos['ssot_id']}\n"
-                        f"symbol={symbol}\n"
-                        f"order_id={sl_oid}\n"
-                        f"time={_now_local_str()}"
-                        ,
-                        ssot_id=int(pos["ssot_id"]),
-                    )
+                    if (pos.get("status") or "").upper() != "NEEDS_MANUAL_PROTECTION":
+                        await self._send_telegram(
+                            f"⚠️ Stage4: SL order missing (REST)\n"
+                            f"ssot_id={pos['ssot_id']}\n"
+                            f"symbol={symbol}\n"
+                            f"order_id={sl_oid}\n"
+                            f"time={_now_local_str()}"
+                            ,
+                            ssot_id=int(pos["ssot_id"]),
+                        )
 
             if position_qty <= 0:
                 await self._close_position(ssot_id=int(pos["ssot_id"]), reason="Position qty zero (REST)")

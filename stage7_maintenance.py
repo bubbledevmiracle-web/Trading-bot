@@ -115,7 +115,8 @@ class Stage7Maintenance:
         self.ssot_store = ssot_store
         self.lifecycle_store = lifecycle_store
         self.telegram_client = telegram_client
-        self.telegram_chat_id = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        _pid = telegram_chat_id or getattr(config, "PERSONAL_CHANNEL_ID", None)
+        self.telegram_chat_id = int(_pid) if _pid is not None else None
         self.telemetry = telemetry
         self.stage4_manager = stage4_manager  # optional; if present we may call placement helper
         self.worker_id = worker_id
@@ -391,12 +392,11 @@ class Stage7Maintenance:
                     side=side_norm,
                 )
                 if ssot_id is None:
-                    # Before alerting, check if this is a known Stage 5 hedge position
                     is_known_hedge = await self._check_if_hedge_position(symbol_internal, side_norm, amt)
                     if is_known_hedge:
-                        # This is a managed hedge - skip the warning
                         continue
-                    
+                    if symbol_internal in getattr(config, "STAGE7_IGNORE_UNMAPPED_SYMBOLS", []):
+                        continue
                     unknown += 1
                     await self._send_telegram(
                         text=(
@@ -707,39 +707,62 @@ class Stage7Maintenance:
 
             await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, tp_levels=tp_levels)
 
-        # 2) Place missing SL (reduce-only stop market)
         if not pos.get("sl_order_id"):
             sl_price = _d(pos.get("sl_price"), Decimal("0"))
             if sl_price > 0:
-                sl_side = "SELL" if side_norm == "LONG" else "BUY"
-                resp = await asyncio.to_thread(
-                    self.bingx.place_stop_market_order,
-                    symbol=symbol,
-                    side=sl_side,
-                    stop_price=sl_price,
-                    quantity=remaining,
-                    reduce_only=True,
-                    position_side=side_norm,
+                current_price = await asyncio.to_thread(self.bingx.get_current_price, symbol)
+                sl_valid = (
+                    (side_norm == "LONG" and sl_price < current_price)
+                    or (side_norm == "SHORT" and sl_price > current_price)
                 )
-                oid = resp.get("orderId")
-                if oid:
-                    repaired = True
-                    await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, sl_order_id=str(oid))
-                    await asyncio.to_thread(self.lifecycle_store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
-                else:
+                if not sl_valid and current_price > 0:
                     await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
-                    await self._send_telegram(
-                        text=(
-                            "⚠️ Stage 7: SL placement failed (needs manual protection)\n"
-                            f"ssot_id={ssot_id}\n"
-                            f"symbol={symbol}\n"
-                            f"side={side_norm}\n"
-                            f"sl={sl_price}\n"
-                            f"error={resp.get('error') or resp.get('raw')}\n"
-                            f"time_utc={_utc_now_iso()}"
-                        ),
-                        ssot_id=ssot_id,
+                    if (pos.get("status") or "").upper() != "NEEDS_MANUAL_PROTECTION":
+                        reason = "SL above current (LONG)" if side_norm == "LONG" else "SL below current (SHORT)"
+                        await self._send_telegram(
+                            text=(
+                                "⚠️ Stage 7: SL not placed (needs manual protection)\n"
+                                f"ssot_id={ssot_id}\n"
+                                f"symbol={symbol}\n"
+                                f"side={side_norm}\n"
+                                f"sl={sl_price}\n"
+                                f"current={current_price}\n"
+                                f"reason={reason}\n"
+                                f"time_utc={_utc_now_iso()}"
+                            ),
+                            ssot_id=ssot_id,
+                        )
+                else:
+                    sl_side = "SELL" if side_norm == "LONG" else "BUY"
+                    resp = await asyncio.to_thread(
+                        self.bingx.place_stop_market_order,
+                        symbol=symbol,
+                        side=sl_side,
+                        stop_price=sl_price,
+                        quantity=remaining,
+                        reduce_only=True,
+                        position_side=side_norm,
                     )
+                    oid = resp.get("orderId")
+                    if oid:
+                        repaired = True
+                        await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, sl_order_id=str(oid))
+                        await asyncio.to_thread(self.lifecycle_store.upsert_order_tracker, ssot_id=ssot_id, order_id=str(oid), kind="SL", level_index=None)
+                    else:
+                        await asyncio.to_thread(self.lifecycle_store.update_position, ssot_id=ssot_id, status="NEEDS_MANUAL_PROTECTION")
+                        if (pos.get("status") or "").upper() != "NEEDS_MANUAL_PROTECTION":
+                            await self._send_telegram(
+                                text=(
+                                    "⚠️ Stage 7: SL placement failed (needs manual protection)\n"
+                                    f"ssot_id={ssot_id}\n"
+                                    f"symbol={symbol}\n"
+                                    f"side={side_norm}\n"
+                                    f"sl={sl_price}\n"
+                                    f"error={resp.get('error') or resp.get('raw')}\n"
+                                    f"time_utc={_utc_now_iso()}"
+                                ),
+                                ssot_id=ssot_id,
+                            )
 
         if repaired and self.telemetry is not None:
             self.telemetry.emit(
@@ -836,7 +859,7 @@ class Stage7Maintenance:
                 corr = TelemetryCorrelation(ssot_id=int(ssot_id), bot_order_id=f"ssot-{int(ssot_id)}")
             await send_telegram_with_telemetry(
                 telegram_client=self.telegram_client,
-                chat_id=str(self.telegram_chat_id),
+                chat_id=self.telegram_chat_id,
                 text=text,
                 telemetry=self.telemetry,
                 correlation=corr,

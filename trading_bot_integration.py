@@ -196,7 +196,7 @@ class TradingBotIntegration:
             
             # Send to personal channel
             await telegram_client.send_message(
-                chat_id=config.PERSONAL_CHANNEL_ID,
+                chat_id=int(config.PERSONAL_CHANNEL_ID),
                 text=startup_message
             )
             
