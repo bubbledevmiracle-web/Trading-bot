@@ -17,3 +17,8 @@ telegram_session.session-journal
 logs/
 *.jsonl
 
+
+# logs
+logs/
+*.jsonl
+
