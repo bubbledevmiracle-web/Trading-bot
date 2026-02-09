@@ -12,3 +12,8 @@ telegram_session.session-journal
 .pytest_cache/
 .env
 *.log
+
+# logs
+logs/
+*.jsonl
+
