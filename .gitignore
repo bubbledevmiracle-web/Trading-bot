@@ -1,0 +1,14 @@
+logs/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+telegram_session.session
+telegram_session.session-journal
+*.session-journal
+.pytest_cache/
+.env
+*.log
