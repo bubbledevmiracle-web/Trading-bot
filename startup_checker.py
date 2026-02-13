@@ -46,12 +46,30 @@ logger = logging.getLogger(__name__)
 
 
 async def warmup_telegram_peers(telegram_client: Client) -> Dict:
+    """
+    Warm up Telegram peers by iterating dialogs and resolving configured channels.
+
+    This call is intentionally resilient to partially inaccessible dialogs
+    (e.g. messages that reference replies in channels you are no longer a member of).
+    Such cases can raise ``ChannelPrivate`` / ``RPCError`` deep inside
+    ``get_dialogs()``; we catch and log them instead of letting Stage 0 crash.
+    """
     dialog_ids = []
-    async for dialog in telegram_client.get_dialogs(limit=500):
-        chat = dialog.chat
-        cid = getattr(chat, "id", None)
-        title = getattr(chat, "title", None) or getattr(chat, "first_name", "")
-        dialog_ids.append((cid, title))
+    try:
+        async for dialog in telegram_client.get_dialogs(limit=500):
+            chat = getattr(dialog, "chat", None)
+            if chat is None:
+                continue
+            cid = getattr(chat, "id", None)
+            title = getattr(chat, "title", None) or getattr(chat, "first_name", "")
+            dialog_ids.append((cid, title))
+    except (ChannelPrivate, UserNotParticipant, PeerIdInvalid, RPCError) as e:
+        # Some history (especially replies) may live in channels you cannot access
+        # anymore. That's fine for warmup; we just log and continue with known IDs.
+        logger.warning(
+            "Skipping inaccessible dialogs during warmup due to Telegram error: %s",
+            e,
+        )
     logger.info("Telegram dialogs (id, title) for ID confirmation: %s", dialog_ids)
     channels = {}
     for channel_name, channel_id in config.SOURCE_CHANNELS.items():
